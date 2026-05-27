@@ -1,0 +1,196 @@
+/* ==========================================================================
+   1. CONFIGURACIÓN GENERAL Y RESET
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Evita barras de scroll molestas */
+    background-color: #050508;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   2. ENTORNOS DE RENDERIZADO Y FLUJO (CAPAS LOWER)
+   ========================================================================== */
+/* Contenedor del Canvas 3D */
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Detrás de todas las ventanas flotantes de la interfaz */
+}
+
+/* ==========================================================================
+   3. PANTALLA DE BIENVENIDA (CAPA INICIAL)
+   ========================================================================== */
+#bienvenida {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #0f0c20 0%, #050508 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Siempre al frente al iniciar la aplicación */
+    transition: opacity 1s ease-out, visibility 1s;
+    text-align: center;
+}
+
+.contenido-bienvenida h1 {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    letter-spacing: 3px;
+    background: linear-gradient(45deg, #a855f7, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(168, 85, 247, 0.2);
+}
+
+.contenido-bienvenida p {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    margin-bottom: 30px;
+}
+
+#btn-entrar {
+    padding: 12px 35px;
+    font-size: 1rem;
+    color: #fff;
+    background: linear-gradient(45deg, #7c3aed, #2563eb);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#btn-entrar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.7);
+}
+
+/* ==========================================================================
+   4. VENTANA DE RECUERDOS - MODAL (CAPA MÁXIMA PRIORIDAD)
+   ========================================================================== */
+#modal-recuerdo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Estratosférico: Ningún brillo o mesh 3D podrá pisar esta interfaz */
+    
+    /* Estado inicial: Totalmente invisible y desactivado */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Efecto cristal elegante (Glassmorphism) */
+.contenido-modal {
+    background: rgba(15, 12, 30, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+/* Botón de Cierre (La X) */
+#btn-cerrar {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+    pointer-events: auto; /* Fuerza al navegador a priorizar sus clics sobre el fondo */
+}
+
+#btn-cerrar:hover {
+    color: #fff;
+}
+
+/* Estilos internos para el renderizado dinámico de recuerdos */
+#cuerpo-modal h2 {
+    background: linear-gradient(45deg, #ffd89b, #19bab9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+}
+
+/* --- INTEGRACIÓN: FOTO DEL RECUERDO CON SOPORTE DE ZOOM --- */
+#cuerpo-modal img {
+    max-width: 100%;
+    max-height: 350px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    
+    /* Transición elástica y suave para el efecto de expansión */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+    z-index: 10;
+    position: relative;
+}
+
+/* Micro-ajuste cuando la foto se expande mediante la función JS */
+#cuerpo-modal img.foto-expandida {
+    transform: scale(1.35); /* Amplía la imagen un 35% de forma armónica */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+    cursor: zoom-out !important;
+}
+
+/* --- INTEGRACIÓN: TIPOGRAFÍA ELEGANTE DE LECTURA (MÁQUINA DE ESCRIBIR) --- */
+#cuerpo-modal p {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    
+    /* Fuentes Serif de gran diseño literario para los poemas o textos */
+    font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    white-space: pre-line; /* Clave: Mantiene los saltos de línea intactos */
+    text-align: center;
+}
+
+/* ==========================================================================
+   5. COMPORTAMIENTOS DINÁMICOS Y CONTROL DE CLASES
+   ========================================================================== */
+/* Regla reactiva: Cuando NO tenga la clase '.oculto', el modal se materializa al frente */
+#modal-recuerdo:not(.oculto) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Clase utilitaria para forzar el ocultamiento absoluto */
+.oculto {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important; 
+}

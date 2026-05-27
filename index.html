@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestro Universo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="bienvenida">
+        <div class="contenido-bienvenida">
+            <h1>Nuestro Universo</h1>
+            <p>Un pequeño espacio en el cosmos dedicado a nosotros.</p>
+            <button id="btn-entrar">Viajar al espacio</button>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="modal-recuerdo" class="oculto">
+        <div class="contenido-modal">
+            <span id="btn-cerrar">&times;</span>
+            <div id="cuerpo-modal">
+                </div>
+        </div>
+    </div>
+
+    <audio id="banda-sonora" src="assets/musica/Ed Sheeran - Photograph.mp3" loop></audio>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module" src="js/recuerdos.js"></script>
+    <script type="module" src="js/galaxia.js"></script>
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
