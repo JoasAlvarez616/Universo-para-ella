@@ -8,10 +8,12 @@ export let nubesNebulosa = [];
 export let cinturonAsteroides; 
 export let constelacionMesh;
 export let fondoEstrellas;
+export let estrellasRecuerdos = [];
 
 let materialLineaGlobal;
 let materialGlowGlobal;
-let estrellasConstelacionObjetos = []; // Array para actualizar el titileo en el loop
+let estrellasConstelacionObjetos = [];
+
 
 export function crearSistemaSolar(scene) {
     const textureLoader = new THREE.TextureLoader();
@@ -564,4 +566,103 @@ export function actualizarOrbitas() {
 
         atributos.color.needsUpdate = true;
     }
+}
+
+// ==========================================
+// 8. CREAR ESTRELLAS DE RECUERDOS (ESTILIZADAS Y BRILLANTES)
+// ==========================================
+export function crearEstrellasRecuerdos(scene) {
+    const textureLoader = new THREE.TextureLoader();
+    
+    // --- NUEVO: Generar textura canvas de ESTRELLA DE DESTELLO CÓSMICO (Cruz de 4 puntas) ---
+    const canvasEstrella = document.createElement('canvas');
+    canvasEstrella.width = 128; // Más resolución para que el destello se vea nítido
+    canvasEstrella.height = 128;
+    const ctx = canvasEstrella.getContext('2d');
+    
+    const centroX = 64;
+    const centroY = 64;
+
+    // 1. Crear un resplandor radial suave de fondo (Halo mágico)
+    const gradienteHalo = ctx.createRadialGradient(centroX, centroY, 0, centroX, centroY, 50);
+    gradienteHalo.addColorStop(0, 'rgba(255, 220, 255, 0.6)');  // Centro lila/blanco brillante
+    gradienteHalo.addColorStop(0.3, 'rgba(236, 72, 153, 0.2)'); // Halo magenta intermedio
+    gradienteHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');           // Difuminado total
+    ctx.fillStyle = gradienteHalo;
+    ctx.beginPath();
+    ctx.arc(centroX, centroY, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Dibujar el destello vertical y horizontal (Efecto lente astronómico / Cruz de 4 puntas)
+    // Línea horizontal del destello
+    const gradH = ctx.createLinearGradient(14, centroY, 114, centroY);
+    gradH.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    gradH.addColorStop(0.5, 'rgba(255, 255, 255, 1.0)'); // Núcleo blanco puro super brillante
+    gradH.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = gradH;
+    ctx.fillRect(14, centroY - 2, 100, 4); // Destello horizontal delgado
+
+    // Línea vertical del destello
+    const gradV = ctx.createLinearGradient(centroX, 14, centroX, 114);
+    gradV.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    gradV.addColorStop(0.5, 'rgba(255, 255, 255, 1.0)'); // Núcleo blanco puro
+    gradV.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = gradV;
+    ctx.fillRect(centroX - 2, 14, 4, 100); // Destello vertical delgado
+
+    // 3. Mini núcleo central intenso
+    const gradCentro = ctx.createRadialGradient(centroX, centroY, 0, centroX, centroY, 6);
+    gradCentro.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gradCentro.addColorStop(1, 'rgba(255, 230, 100, 0.8)'); // Borde dorado/cálido en el corazón de la estrella
+    ctx.fillStyle = gradCentro;
+    ctx.beginPath();
+    ctx.arc(centroX, centroY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    const texturaEstrellaRecuerdo = new THREE.CanvasTexture(canvasEstrella);
+
+    // Iterar sobre los recuerdos en CONFIG_UNIVERSO
+    CONFIG_UNIVERSO.recuerdos.forEach((recuerdo, index) => {
+        const estrellaGeom = new THREE.BufferGeometry();
+        const vertices = new Float32Array([0, 0, 0]); 
+        estrellaGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+        const estrellaMat = new THREE.PointsMaterial({
+            size: 7.5, // <-- SIGNIFICATIVAMENTE MÁS GRANDES (Antes era 1.5) para que destaquen a primera vista
+            map: texturaEstrellaRecuerdo, // Nuestra nueva textura personalizada en forma de cruz mágica
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.AdditiveBlending, // Hace que los colores se sumen y brillen con luz propia
+            depthWrite: false,
+            sizeAttenuation: true // Se ven gigantes si te acercas con la cámara, manteniendo el efecto 3D
+        });
+
+        const puntoEstrella = new THREE.Points(estrellaGeom, estrellaMat);
+        
+        // --- POSICIONAMIENTO EN ESPACIO PROFUNDO ---
+        const radioRecuerdos = 45 + (index * 3); // Distribución radial
+        const anguloBase = (index / CONFIG_UNIVERSO.recuerdos.length) * Math.PI * 2;
+        const anguloAleatorio = (Math.random() - 0.5) * 0.4;
+        const alturaAleatoria = (Math.random() - 0.5) * 22; // Dispersión en el eje Y
+
+        const x = Math.cos(anguloBase + anguloAleatorio) * radioRecuerdos;
+        const z = Math.sin(anguloBase + anguloAleatorio) * radioRecuerdos;
+        const y = alturaAleatoria;
+
+        puntoEstrella.position.set(x, y, z);
+        
+        // Guardar datos del recuerdo para la física de clics
+        puntoEstrella.userData = {
+            id: `recuerdo_${index}`,
+            nombre: recuerdo.titulo,
+            tipo: recuerdo.tipo,
+            contenido: recuerdo.contenido, 
+            descripcion: recuerdo.descripcion,
+            fase: Math.random() * Math.PI * 2, 
+            pausado: false
+        };
+
+        scene.add(puntoEstrella);
+        estrellasRecuerdos.push(puntoEstrella); 
+    });
 }

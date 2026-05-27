@@ -1,8 +1,10 @@
-// js/main.js - VERSIÓN ULTRA-BLINDADA OPTIMIZADA
+// js/main.js - VERSIÓN ULTRA-BLINDADA OPTIMIZADA (CON ESTRELLAS DE RECUERDO)
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { crearSistemaSolar, actualizarOrbitas, planetas3D, solMesh,
-    cinturonAsteroides, crearConstelacionNombre, crearFondoEstrellas } from './galaxia.js';
+        cinturonAsteroides, crearConstelacionNombre, crearFondoEstrellas,
+        crearEstrellasRecuerdos,
+        estrellasRecuerdos } from './galaxia.js';
 
 // --- VARIABLES GLOBALES DE CONTROL ---
 let escena, camara, renderizador, controles;
@@ -51,12 +53,16 @@ function init() {
     escena.add(luzAmbiental);
 
     raycaster = new THREE.Raycaster();
+    // --- INTEGRADO: Burbuja magnética de clic para las partículas de las estrellas ---
+    raycaster.params.Points.threshold = 4.0; 
+
     mouse = new THREE.Vector2();
 
     // Invocaciones a galaxia.js de forma limpia y ordenada
     crearSistemaSolar(escena);
     crearConstelacionNombre(escena, 'ISKEL');
-    crearFondoEstrellas(escena); // Llama al nuevo firmamento esférico realista
+    crearFondoEstrellas(escena);
+    crearEstrellasRecuerdos(escena);
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousemove', onMouseMove, false);
@@ -88,14 +94,20 @@ function onMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camara);
-    const intersecciones = raycaster.intersectObjects(planetas3D, false);
+    
+    // --- MODIFICADO: Combinamos planetas, sol y estrellas de recuerdos para el cambio de cursor ---
+    const objetosInteractivos = [...planetas3D, solMesh, ...estrellasRecuerdos].filter(Boolean);
+    // Agregamos 'true' para que analice de forma recursiva las colecciones de puntos
+    const intersecciones = raycaster.intersectObjects(objetosInteractivos, true);
 
     if (intersecciones.length > 0) {
         const objetoDetectado = intersecciones[0].object;
 
-        if (objetoDetectado.userData && objetoDetectado.userData.nombre) {
+        // Si es un planeta o el sol con nombre, o una estrella de recuerdo con userData configurado
+        if (objetoDetectado.userData && (objetoDetectado.userData.nombre || objetoDetectado.userData.titulo)) {
             document.body.style.cursor = 'pointer';
 
+            // Lógica de pausa para atmósfera (solo aplica a planetas)
             if (planetaApuntado && planetaApuntado !== objetoDetectado) {
                 planetaApuntado.userData.pausado = false;
                 if (planetaApuntado.userData.atmosfera) {
@@ -127,13 +139,14 @@ function onPlanetClick() {
     if (modoCinematico || bloqueoclic) return; 
 
     raycaster.setFromCamera(mouse, camara);
-    const objetosInteractivos = [...planetas3D, solMesh].filter(Boolean);
-    const intersecciones = raycaster.intersectObjects(objetosInteractivos, false);
+    // --- MODIFICADO: Añadidas las estrellas de recuerdos a la física del impacto del clic ---
+    const objetosInteractivos = [...planetas3D, solMesh, ...estrellasRecuerdos].filter(Boolean);
+    const intersecciones = raycaster.intersectObjects(objetosInteractivos, true);
 
     if (intersecciones.length > 0) {
         const objetoTocado = intersecciones[0].object;
         
-        if (objetoTocado.userData && objetoTocado.userData.nombre) {
+        if (objetoTocado.userData && (objetoTocado.userData.nombre || objetoTocado.userData.titulo)) {
             objetivoCamara = objetoTocado;
             modoCinematico = true;
             objetivoCamara.userData.pausado = true;
@@ -148,8 +161,11 @@ function onPlanetClick() {
 
 function abrirRecuerdo(datos) {
     if (intervaloEscritura) clearInterval(intervaloEscritura);
-    cuerpoModal.innerHTML = `<h2>${datos.nombre}</h2><br>`;
+    
+    const tituloMostrar = datos.nombre || datos.titulo || "Un recuerdo especial";
+    cuerpoModal.innerHTML = `<h2>${tituloMostrar}</h2><br>`;
 
+    // --- CASE 1: EL SOL CENTRAL ---
     if (datos.tipo === 'sol') {
         cuerpoModal.innerHTML += `
             <div style="text-align: center;">
@@ -159,14 +175,29 @@ function abrirRecuerdo(datos) {
         `;
         setTimeout(() => asociarClickZoom(), 50);
     } 
+    // --- CASE 2: FOTOS (PLANETAS O ESTRELLAS DE RECUERDO) ---
     else if (datos.tipo === 'foto') {
         cuerpoModal.innerHTML += `
             <div style="text-align:center;">
-                <img src="${datos.contenido}" alt="${datos.nombre}" class="foto-recuerdo" style="max-height:350px; border-radius:8px; cursor: zoom-in;">
+                <img src="${datos.contenido}" alt="${tituloMostrar}" class="foto-recuerdo" style="max-height:350px; border-radius:8px; cursor: zoom-in;">
+                ${datos.descripcion ? `<p style="margin-top: 15px;">${datos.descripcion}</p>` : ''}
             </div>
         `;
         setTimeout(() => asociarClickZoom(), 50);
     } 
+    // --- CASE 3: MINI VIDEOS ---
+    else if (datos.tipo === 'video') {
+        cuerpoModal.innerHTML += `
+            <div style="text-align:center;">
+                <video class="video-recuerdo" controls autoplay loop playsinline style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
+                    <source src="${datos.contenido}" type="video/mp4">
+                    Tu navegador no soporta videos en formato MP4.
+                </video>
+                ${datos.descripcion ? `<p style="margin-top: 15px;">${datos.descripcion}</p>` : ''}
+            </div>
+        `;
+    }
+    // --- CASE 4: TEXTO ANIMADO EN MÁQUINA DE ESCRIBIR ---
     else if (datos.tipo === 'texto') {
         const pTexto = document.createElement('p');
         pTexto.className = 'texto-animado';
@@ -185,6 +216,9 @@ function abrirRecuerdo(datos) {
                 indice++;
             } else {
                 clearInterval(intervaloEscritura);
+                if (datos.descripcion) {
+                    cuerpoModal.innerHTML += `<p style="margin-top: 15px; font-style: italic; opacity: 0.7;">${datos.descripcion}</p>`;
+                }
             }
         }, 30); 
     }
@@ -239,10 +273,14 @@ function animar() {
     if (modoCinematico && objetivoCamara) {
         objetivoCamara.getWorldPosition(posMundoAux);
         const esSol = (objetivoCamara.userData.tipo === 'sol');
-        const radioCuerpo = esSol ? 4.5 : (objetivoCamara.userData.tamano || 2);
+        // --- MODIFICADO: Ajuste de cámara inteligente para estrellas de recuerdos lejanas ---
+        const esEstrellaRecuerdo = objetivoCamara.userData.id && objetivoCamara.userData.id.startsWith('recuerdo_');
+        
+        const radioCuerpo = esSol ? 4.5 : (objetivoCamara.userData.tamano || 1.5);
 
-        const offsetZ = esSol ? 22 : (radioCuerpo * 4) + 5;
-        const offsetY = esSol ? 8  : (radioCuerpo * 1.5) + 2;
+        // Si es una de las supernovas profundas, le damos una distancia fija y cómoda para enfocarla
+        const offsetZ = esSol ? 22 : (esEstrellaRecuerdo ? 12 : (radioCuerpo * 4) + 5);
+        const offsetY = esSol ? 8  : (esEstrellaRecuerdo ? 3  : (radioCuerpo * 1.5) + 2);
         
         const posicionObjetivo = new THREE.Vector3(posMundoAux.x, posMundoAux.y + offsetY, posMundoAux.z + offsetZ);
 
