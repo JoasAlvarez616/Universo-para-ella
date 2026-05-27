@@ -24,9 +24,9 @@ export const CONFIG_UNIVERSO = {
         },
         {
             id: 2,
-            nombre: "Nuestra Foto Favorita",
+            nombre: "Nuestras Fotos Favoritas",
             tipo: "foto",
-            contenido: "assets/fotos/PXL_20260118_130237703.jpg", 
+            contenido: "assets/fotos/Picsart_26-05-27_15-37-14-054.jpg", 
             textoFlotante: "Haz clic para vernos 📸",
             color: 0x3b82f6, 
             tamano: 1.5,
@@ -35,10 +35,10 @@ export const CONFIG_UNIVERSO = {
         },
         {
             id: 3,
-            nombre: "Un Momento Especial",
+            nombre: "Los besitos que tanto adoras",
             tipo: "video", // <-- NUEVO TIPO: VIDEO
-            contenido: "assets/videos/primer_video.mp4", // Guarda tus videos en formato .mp4 dentro de esta carpeta
-            textoFlotante: "Un recuerdo en movimiento 🎬",
+            contenido: "assets/fotos/VID_45450913_045128_765.mp4", // Guarda tus videos en formato .mp4 dentro de esta carpeta
+            textoFlotante: "Un recuerdo en movimiento",
             color: 0x10b981, // Verde esmeralda cósmico
             tamano: 1.4,
             distancia: 22,
@@ -50,16 +50,16 @@ export const CONFIG_UNIVERSO = {
     // El sistema del archivo galaxia.js que armamos las distribuirá automáticamente afuera del cinturón
     recuerdos: [
         {
-            titulo: "El día de las risas",
+            titulo: "Nunca faltan las risas",
             tipo: "video", // Mini video en una estrella profunda
-            contenido: "assets/videos/risas.mp4",
-            descripcion: "No puedo dejar de sonreír cada vez que veo este clip. Tu risa es mi sonido favorito en todo el mundo."
+            contenido: "assets/fotos/VID-20250607-WA0097(1).mp4",
+            descripcion: "Amo verte sonreír"
         },
         {
-            titulo: "Bajo la lluvia",
+            titulo: "En el pueblo que amo, con la chica que amo",
             tipo: "foto",
-            contenido: "assets/fotos/lluvia.jpg",
-            descripcion: "Cualquier tormenta es perfecta si me toma a tu lado."
+            contenido: "assets/fotos/PXL_20260117_193744641.jpg",
+            descripcion: "Feliz siempre por su compañia."
         },
         {
             titulo: "Una promesa sutil",

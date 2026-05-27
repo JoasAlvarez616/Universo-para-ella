@@ -273,8 +273,10 @@ function animar() {
     if (modoCinematico && objetivoCamara) {
         objetivoCamara.getWorldPosition(posMundoAux);
         const esSol = (objetivoCamara.userData.tipo === 'sol');
-        // --- MODIFICADO: Ajuste de cámara inteligente para estrellas de recuerdos lejanas ---
-        const esEstrellaRecuerdo = objetivoCamara.userData.id && objetivoCamara.userData.id.startsWith('recuerdo_');
+        
+        // --- CORRECCIÓN SEGURA: Validamos que id exista y sea un string antes de usar startsWith ---
+        const idCuerpo = objetivoCamara.userData.id;
+        const esEstrellaRecuerdo = (typeof idCuerpo === 'string' && idCuerpo.startsWith('recuerdo_'));
         
         const radioCuerpo = esSol ? 4.5 : (objetivoCamara.userData.tamano || 1.5);
 
