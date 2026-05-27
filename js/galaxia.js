@@ -168,38 +168,75 @@ export function crearSistemaSolar(scene) {
     const conteoAsteroides = 1200; 
     const asteroidesGeometry = new THREE.BufferGeometry();
     const posiciones = new Float32Array(conteoAsteroides * 3);
+    const coloresAsteroides = new Float32Array(conteoAsteroides * 3); // Para dar variedad cromática a las rocas
     const datosOrbita = []; 
 
     const radioMin = maxDistanciaPlaneta + 4; 
     const radioMax = radioMin + 5; 
 
+    // Paleta de colores para las rocas espaciales (grises, carbonaceos y tintes lila del espacio)
+    const tonosRoca = [
+        new THREE.Color(0xa3a3a3), // Gris mineral
+        new THREE.Color(0x737373), // Roca oscura
+        new THREE.Color(0xb5a4c4), // Reflejo lila cósmico
+        new THREE.Color(0x525252)  // Carbonaceo profundo
+    ];
+
     for (let i = 0; i < conteoAsteroides; i++) {
         const radio = radioMin + Math.random() * (radioMax - radioMin);
         const angulo = Math.random() * Math.PI * 2;
-        const altura = (Math.random() - 0.5) * 1.0; 
+        const altura = (Math.random() - 0.5) * 1.2; // Un poco más de dispersión vertical
 
         const idx = i * 3;
         posiciones[idx]     = Math.cos(angulo) * radio; 
         posiciones[idx + 1] = altura;                   
         posiciones[idx + 2] = Math.sin(angulo) * radio; 
 
+        // Asignar un tono de roca aleatorio para romper la monotonía
+        const colorElegido = tonosRoca[Math.floor(Math.random() * tonosRoca.length)];
+        // Añadimos una pequeña variación individual al brillo de cada una
+        const variacionBrillo = 0.8 + Math.random() * 0.4; 
+        coloresAsteroides[idx]     = colorElegido.r * variacionBrillo;
+        coloresAsteroides[idx + 1] = colorElegido.g * variacionBrillo;
+        coloresAsteroides[idx + 2] = colorElegido.b * variacionBrillo;
+
         datosOrbita.push({
             radio: radio,
             angulo: angulo,
-            velocidad: (Math.random() * 0.0008) + 0.0004, 
+            velocidad: (Math.random() * 0.0006) + 0.0003, // Rotación ligeramente más pausada y natural
             altura: altura
         });
     }
 
     asteroidesGeometry.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+    asteroidesGeometry.setAttribute('color', new THREE.BufferAttribute(coloresAsteroides, 3));
     
+    // --- NUEVO: Generar textura de micro-roca orgánica difuminada mediante Canvas ---
+    const canvasAsteroide = document.createElement('canvas');
+    canvasAsteroide.width = 16;
+    canvasAsteroide.height = 16;
+    const ctxAsteroide = canvasAsteroide.getContext('2d');
+
+    // Creamos una máscara radial para eliminar las esquinas cuadradas
+    const gradienteRoca = ctxAsteroide.createRadialGradient(8, 8, 0, 8, 8, 8);
+    gradienteRoca.addColorStop(0, 'rgba(255, 255, 255, 1.0)');   // Centro sólido
+    gradienteRoca.addColorStop(0.3, 'rgba(230, 230, 230, 0.8)'); // Cuerpo de la roca
+    gradienteRoca.addColorStop(0.7, 'rgba(150, 150, 150, 0.2)'); // Bordes suavizados y polvorientos
+    gradienteRoca.addColorStop(1, 'rgba(0, 0, 0, 0)');           // Transparencia total
+
+    ctxAsteroide.fillStyle = gradienteRoca;
+    ctxAsteroide.fillRect(0, 0, 16, 16);
+    const texturaRocaEspacial = new THREE.CanvasTexture(canvasAsteroide);
+
     const asteroideMaterial = new THREE.PointsMaterial({
-        color: 0xbaa3cd, 
-        size: 0.15,      
+        size: 0.28, // Un poco más grandes para apreciar la forma esferoidal/polvorienta
+        vertexColors: true, // Habilitar la paleta de colores que creamos arriba
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.65,
+        map: texturaRocaEspacial, // Adiós cuadrados perfectos, hola partículas orgánicas
         blending: THREE.AdditiveBlending,
-        depthWrite: false
+        depthWrite: false,
+        sizeAttenuation: true // Se encogen a la distancia, ganan volumen de cerca
     });
 
     cinturonAsteroides = new THREE.Points(asteroidesGeometry, asteroideMaterial);
