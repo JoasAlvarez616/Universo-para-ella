@@ -3,8 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { crearSistemaSolar, actualizarOrbitas, planetas3D, solMesh,
         cinturonAsteroides, crearConstelacionNombre, crearFondoEstrellas,
-        crearEstrellasRecuerdos,
-        estrellasRecuerdos } from './galaxia.js';
+        crearEstrellasRecuerdos, estrellasRecuerdos } from './galaxia.js';
 
 // --- VARIABLES GLOBALES DE CONTROL ---
 let escena, camara, renderizador, controles;
@@ -17,7 +16,7 @@ let bloqueoclic = false;
 let regresandoAOrigen = false;
 let intervaloEscritura = null;
 
-//Configuracion del indice musical
+// Configuración de la lista musical
 const PLAYLIST = [
     { titulo: "The Book of life - Te amo y mas", archivo: "assets/musica/The Book of life - Te amo y mas.mp3" },
     { titulo: "Andres Cepeda - Por el resto de mi vida", archivo: "assets/musica/Andres Cepeda - Por el resto de mi vida.mp3" },
@@ -25,7 +24,6 @@ const PLAYLIST = [
 ];
 let indiceMusicaActual = 0;
 
-// Vector auxiliar para obtener coordenadas globales en tiempo real
 const posMundoAux = new THREE.Vector3(); 
 
 const contenedor = document.getElementById('canvas-container');
@@ -36,10 +34,13 @@ const modal = document.getElementById('modal-recuerdo');
 const cuerpoModal = document.getElementById('cuerpo-modal');
 const btnCerrarModal = document.getElementById('btn-cerrar');
 
-// --- 1. INICIALIZACIÓN DEL ENTORNO ---
 function init() {
     escena = new THREE.Scene();
-    escena.fog = new THREE.FogExp2(0x050508, 0.015); 
+    
+    // ==========================================================================
+    // ✔️ FIX DE NIEBLA: Cambiamos a niebla lineal de rango amplio para no opacar el fondo
+    // ==========================================================================
+    escena.fog = new THREE.Fog(0x050508, 90, 400); 
 
     camara = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camara.position.set(0, 20, 35); 
@@ -54,44 +55,37 @@ function init() {
     controles = new OrbitControls(camara, renderizador.domElement);
     controles.enableDamping = true; 
     controles.dampingFactor = 0.05;
-    controles.maxDistance = 120; // Espacio de sobra para explorar los planetas lejanos
+    controles.maxDistance = 150; // Ampliado para poder alejarse a ver los planetas nuevos
     controles.minDistance = 8;      
 
-    // ==========================================================================
-    // CONFIGURACIÓN INVERTIDA: ROTACIÓN COMO PROTAGONISTA (OPTIMIZADO PC)
-    // ==========================================================================
     controles.enablePan = true;
     controles.panSpeed = 1.2;
-    controles.rotateSpeed = 1.0; // Un control firme y ágil al rotar
+    controles.rotateSpeed = 1.0; 
 
-    // ASIGNACIÓN INVERTIDA DE BOTONES:
     controles.mouseButtons = {
-        LEFT: THREE.MOUSE.ROTATE,   // Clic Izquierdo: ¡El rey! Rota y orbita el espacio de forma natural
-        MIDDLE: THREE.MOUSE.DOLLY,  // Rueda central: Acercarse o alejarse (Zoom)
-        RIGHT: THREE.MOUSE.PAN      // Clic固定 Derecho: Desplazamiento lateral (Mover el lienzo a los lados)
+        LEFT: THREE.MOUSE.ROTATE,   
+        MIDDLE: THREE.MOUSE.DOLLY,  
+        RIGHT: THREE.MOUSE.PAN      
     };
 
-    // Configuración táctil equilibrada para cuando lo mire en el teléfono
     controles.touches = {
-        ONE: THREE.TOUCH.ROTATE,     // Un dedo rota la galaxia
-        TWO: THREE.TOUCH.DOLLY_PAN   // Dos dedos hacen zoom y se desplazan
+        ONE: THREE.TOUCH.ROTATE,     
+        TWO: THREE.TOUCH.DOLLY_PAN   
     };
 
-    // Desactivar el modo cinemático automático si mete mano manualmente
     controles.addEventListener('start', () => {
         modoCinematico = false;
     });
 
-    const luzAmbiental = new THREE.AmbientLight(0x333355, 1.5);
+    // Luz ambiental que apoya suavemente la escena
+    const luzAmbiental = new THREE.AmbientLight(0xffffff, 0.6);
     escena.add(luzAmbiental);
 
     raycaster = new THREE.Raycaster();
-    // --- INTEGRADO: Burbuja magnética de clic para las partículas de las estrellas ---
     raycaster.params.Points.threshold = 4.0; 
 
     mouse = new THREE.Vector2();
 
-    // Invocaciones a galaxia.js de forma limpia y ordenada
     crearSistemaSolar(escena);
     crearConstelacionNombre(escena, 'ISKEL');
     crearFondoEstrellas(escena);
@@ -104,7 +98,6 @@ function init() {
     btnCerrarModal.addEventListener('click', cerrarRecuerdo);
     btnEntrar.addEventListener('click', iniciarExperiencia);
 
-    // Integrar controles de musica
     const btnPlayPause = document.getElementById('btn-play-pause');
     const btnNext = document.getElementById('btn-next');
     const btnPrev = document.getElementById('btn-prev');
@@ -118,7 +111,6 @@ function init() {
     animar();
 }
 
-// --- 2. EVENTOS DE INTERACCIÓN ---
 function iniciarExperiencia() {
     pantallaBienvenida.style.opacity = '0';
     setTimeout(() => {
@@ -143,23 +135,19 @@ function onMouseMove(event) {
 
     raycaster.setFromCamera(mouse, camara);
     
-    // --- MODIFICADO: Combinamos planetas, sol y estrellas de recuerdos para el cambio de cursor ---
     const objetosInteractivos = [...planetas3D, solMesh, ...estrellasRecuerdos].filter(Boolean);
-    // Agregamos 'true' para que analice de forma recursiva las colecciones de puntos
     const intersecciones = raycaster.intersectObjects(objetosInteractivos, true);
 
     if (intersecciones.length > 0) {
         const objetoDetectado = intersecciones[0].object;
 
-        // Si es un planeta o el sol con nombre, o una estrella de recuerdo con userData configurado
         if (objetoDetectado.userData && (objetoDetectado.userData.nombre || objetoDetectado.userData.titulo)) {
             document.body.style.cursor = 'pointer';
 
-            // Lógica de pausa para atmósfera (solo aplica a planetas)
             if (planetaApuntado && planetaApuntado !== objetoDetectado) {
                 planetaApuntado.userData.pausado = false;
                 if (planetaApuntado.userData.atmosfera) {
-                    planetaApuntado.userData.atmosfera.material.opacity = 0.22;
+                    planetaApuntado.userData.atmosfera.material.opacity = 0.25;
                 }
             }
 
@@ -167,7 +155,7 @@ function onMouseMove(event) {
             planetaApuntado.userData.pausado = true;
 
             if (planetaApuntado.userData.atmosfera) {
-                planetaApuntado.userData.atmosfera.material.opacity = 0.6;
+                planetaApuntado.userData.atmosfera.material.opacity = 0.7;
             }
         }
     } else {
@@ -176,7 +164,7 @@ function onMouseMove(event) {
         if (planetaApuntado) {
             planetaApuntado.userData.pausado = false;
             if (planetaApuntado.userData.atmosfera) {
-                planetaApuntado.userData.atmosfera.material.opacity = 0.22;
+                planetaApuntado.userData.atmosfera.material.opacity = 0.25;
             }
             planetaApuntado = null;
         }
@@ -187,7 +175,6 @@ function onPlanetClick() {
     if (modoCinematico || bloqueoclic) return; 
 
     raycaster.setFromCamera(mouse, camara);
-    // --- MODIFICADO: Añadidas las estrellas de recuerdos a la física del impacto del clic ---
     const objetosInteractivos = [...planetas3D, solMesh, ...estrellasRecuerdos].filter(Boolean);
     const intersecciones = raycaster.intersectObjects(objetosInteractivos, true);
 
@@ -213,7 +200,6 @@ function abrirRecuerdo(datos) {
     const tituloMostrar = datos.nombre || datos.titulo || "Un recuerdo especial";
     cuerpoModal.innerHTML = `<h2>${tituloMostrar}</h2><br>`;
 
-    // --- CASE 1: EL SOL CENTRAL ---
     if (datos.tipo === 'sol') {
         cuerpoModal.innerHTML += `
             <div style="text-align: center;">
@@ -223,7 +209,6 @@ function abrirRecuerdo(datos) {
         `;
         setTimeout(() => asociarClickZoom(), 50);
     } 
-    // --- CASE 2: FOTOS (PLANETAS O ESTRELLAS DE RECUERDO) ---
     else if (datos.tipo === 'foto') {
         cuerpoModal.innerHTML += `
             <div style="text-align:center;">
@@ -233,7 +218,6 @@ function abrirRecuerdo(datos) {
         `;
         setTimeout(() => asociarClickZoom(), 50);
     } 
-    // --- CASE 3: MINI VIDEOS ---
     else if (datos.tipo === 'video') {
         cuerpoModal.innerHTML += `
             <div style="text-align:center;">
@@ -245,7 +229,6 @@ function abrirRecuerdo(datos) {
             </div>
         `;
     }
-    // --- CASE 4: TEXTO ANIMADO EN MÁQUINA DE ESCRIBIR ---
     else if (datos.tipo === 'texto') {
         const pTexto = document.createElement('p');
         pTexto.className = 'texto-animado';
@@ -264,10 +247,6 @@ function abrirRecuerdo(datos) {
                 indice++;
             } else {
                 clearInterval(intervaloEscritura);
-                
-                // ==========================================================================
-                // ✔️ ACTUALIZADO
-                // ==========================================================================
                 if (datos.descripcion) {
                     const contenedorDesc = document.createElement('div');
                     contenedorDesc.innerHTML = `
@@ -290,13 +269,13 @@ function cerrarRecuerdo() {
     
     if (objetivoCamara) {
         if (objetivoCamara.userData.atmosfera) {
-            objetivoCamara.userData.atmosfera.material.opacity = 0.22;
+            objetivoCamara.userData.atmosfera.material.opacity = 0.25;
         }
     }
     
     objetivoCamara = null;
     modoCinematico = false;
-    regresandoAOrigen = true; // La cámara inicia su viaje de retorno
+    regresandoAOrigen = true; 
 
     controles.enabled = true;
     controles.enableDamping = true;
@@ -322,14 +301,11 @@ function onWindowResize() {
     renderizador.setSize(window.innerWidth, window.innerHeight);
 }
 
-// --- 4. BUCLE DE ANIMACIÓN INTEGRAL ---
 function animar() {
     requestAnimationFrame(animar);
     
-    // Ejecuta la física de rotaciones, traslaciones, atmósferas y anillos
     actualizarOrbitas();
     
-    // --- LÓGICA DE CÁMARA INTELIGENTE (HÍBRIDA) ---
     if (modoCinematico && objetivoCamara) {
         objetivoCamara.getWorldPosition(posMundoAux);
         const esSol = (objetivoCamara.userData.tipo === 'sol');
@@ -349,7 +325,6 @@ function animar() {
             controles.target.lerp(posMundoAux, 0.05);
         }
 
-        // --- LIBERACIÓN DE CÁMARA ---
         if (camara.position.distanceTo(posicionObjetivo) < 0.1) {
             modoCinematico = false;
         }
@@ -361,61 +336,38 @@ function animar() {
         camara.position.lerp(posicionGlobal, 0.05);
         controles.target.lerp(centroUniverso, 0.05);
 
-        // Ajustamos la tolerancia a 0.3 para cortar cálculos decimales infinitos
         if (controles.target.distanceTo(centroUniverso) < 0.3) {
-            // ==========================================================================
-            // FIX DEL SALTO: Apagamos el damping para absorber el impacto del aterrizaje
-            // ==========================================================================
             controles.enableDamping = false; 
 
             controles.target.copy(centroUniverso); 
             camara.position.copy(posicionGlobal);
             
-            regresandoAOrigen = false; // Apagamos el viaje de la cámara de inmediato
-            
-            // Forzamos un update inmediato sin damping para consolidar la matriz limpia
+            regresandoAOrigen = false; 
             controles.update();        
-            
-            // Volvemos a encender el damping para que el movimiento libre del usuario siga siendo fluido
             controles.enableDamping = true; 
             
-            // ==========================================================================
-            // ¡AHORA SÍ! Despertamos los planetas de forma segura sin congelar el mouse
-            // ==========================================================================
             if (typeof planetas3D !== 'undefined') {
                 planetas3D.forEach(p => p.userData.pausado = false);
             }
         }
     }
     
-    // ==========================================================================
-    // NUEVO: ANIMACIÓN DINÁMICA DE LA CONSTELACIÓN (TITILEO COSMICO)
-    // ==========================================================================
+    // Animación dinámica de la constelación (Titileo)
     if (typeof estrellasConstelacionObjetos !== 'undefined' && estrellasConstelacionObjetos.length > 0) {
-        const tiempo = window.performance.now() * 0.003; // Velocidad del titileo
+        const tiempo = window.performance.now() * 0.003; 
         
         estrellasConstelacionObjetos.forEach((estrella) => {
             const ud = estrella.userData;
-            // Variación armónica usando la fase matemática única de cada nodo estrella
             const factorBucle = Math.sin(tiempo + ud.fase);
-            
-            // Si la estrella es parte del corazón, le metemos un boost extra de brillo
             const multiplicadorGlow = ud.esCorazon ? 1.4 : 1.1;
             estrella.material.size = ud.sizeBase * (multiplicadorGlow + factorBucle * 0.25);
-            
-            // La opacidad también respira dinámicamente para dar profundidad
             estrella.material.opacity = 0.75 + (factorBucle * 0.25);
         });
     }
     
-    // --- CLAVE DE ORBITCONTROLS ---
-    // Procesa la inercia (damping) tanto en cinemáticas como en el control libre del mouse
     controles.update(); 
-
-    // Renderizar la escena limpia
     renderizador.render(escena, camara);
 
-    // Animación de tu cinturón de asteroides global general
     if (cinturonAsteroides) {
         const posiciones = cinturonAsteroides.geometry.attributes.position.array;
         const datos = cinturonAsteroides.userData.datosOrbitas || cinturonAsteroides.userData.datosOrbita;
