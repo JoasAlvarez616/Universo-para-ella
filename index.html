@@ -8,6 +8,9 @@
 </head>
 <body>
 
+    <!-- ==========================================================================
+       1. PANTALLA DE BIENVENIDA (CAPA INICIAL)
+       ========================================================================== -->
     <div id="bienvenida">
         <div class="contenido-bienvenida">
             <h1>Nuestro Universo</h1>
@@ -16,18 +19,43 @@
         </div>
     </div>
 
+    <!-- ==========================================================================
+       2. ENTORNO DE RENDERIZADO 3D (THREE.JS)
+       ========================================================================== -->
     <div id="canvas-container"></div>
 
+    <!-- ==========================================================================
+       3. VENTANA DE RECUERDOS - MODAL
+       ========================================================================== -->
     <div id="modal-recuerdo" class="oculto">
         <div class="contenido-modal">
             <span id="btn-cerrar">&times;</span>
             <div id="cuerpo-modal">
-                </div>
+                <!-- El contenido dinámico (Fotos, Videos, Poemas) se inyecta aquí desde JS -->
+            </div>
         </div>
     </div>
 
-    <audio id="banda-sonora" src="assets/musica/Ed Sheeran - Photograph.mp3" loop></audio>
+    <!-- ==========================================================================
+       4. REPRODUCTOR ESTELAR FLOTANTE (PLAYLIST)
+       ========================================================================== -->
+    <div id="reproductor-estelar" class="music-player">
+        <div class="track-info">
+            <span id="player-titulo">Sintonía Cósmica</span>
+        </div>
+        <div class="player-controls">
+            <button id="btn-prev" class="player-btn">⏮</button>
+            <button id="btn-play-pause" class="player-btn">▶</button>
+            <button id="btn-next" class="player-btn">⏭</button>
+        </div>
+    </div>
 
+    <!-- Elemento de audio nativo controlado dinámicamente mediante JS -->
+    <audio id="banda-sonora" loop playsinline></audio>
+
+    <!-- ==========================================================================
+       5. MAPEO DE IMPORTACIONES Y SCRIPTS MODULARES
+       ========================================================================== -->
     <script type="importmap">
         {
             "imports": {

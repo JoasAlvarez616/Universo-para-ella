@@ -17,6 +17,14 @@ let bloqueoclic = false;
 let regresandoAOrigen = false;
 let intervaloEscritura = null;
 
+//Configuracion del indice musical
+const PLAYLIST = [
+    { titulo: "The Book of life - Te amo y mas", archivo: "assets/musica/The Book of life - Te amo y mas.mp3" },
+    { titulo: "Andres Cepeda - Por el resto de mi vida", archivo: "assets/musica/Andres Cepeda - Por el resto de mi vida.mp3" },
+    { titulo: "Ed Sheeran - Photograph", archivo: "assets/musica/Ed Sheeran - Photograph.mp3" }
+];
+let indiceMusicaActual = 0;
+
 // Vector auxiliar para obtener coordenadas globales en tiempo real
 const posMundoAux = new THREE.Vector3(); 
 
@@ -46,8 +54,33 @@ function init() {
     controles = new OrbitControls(camara, renderizador.domElement);
     controles.enableDamping = true; 
     controles.dampingFactor = 0.05;
-    controles.maxDistance = 80;     
+    controles.maxDistance = 120; // Espacio de sobra para explorar los planetas lejanos
     controles.minDistance = 8;      
+
+    // ==========================================================================
+    // CONFIGURACIÓN INVERTIDA: ROTACIÓN COMO PROTAGONISTA (OPTIMIZADO PC)
+    // ==========================================================================
+    controles.enablePan = true;
+    controles.panSpeed = 1.2;
+    controles.rotateSpeed = 1.0; // Un control firme y ágil al rotar
+
+    // ASIGNACIÓN INVERTIDA DE BOTONES:
+    controles.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,   // Clic Izquierdo: ¡El rey! Rota y orbita el espacio de forma natural
+        MIDDLE: THREE.MOUSE.DOLLY,  // Rueda central: Acercarse o alejarse (Zoom)
+        RIGHT: THREE.MOUSE.PAN      // Clic固定 Derecho: Desplazamiento lateral (Mover el lienzo a los lados)
+    };
+
+    // Configuración táctil equilibrada para cuando lo mire en el teléfono
+    controles.touches = {
+        ONE: THREE.TOUCH.ROTATE,     // Un dedo rota la galaxia
+        TWO: THREE.TOUCH.DOLLY_PAN   // Dos dedos hacen zoom y se desplazan
+    };
+
+    // Desactivar el modo cinemático automático si mete mano manualmente
+    controles.addEventListener('start', () => {
+        modoCinematico = false;
+    });
 
     const luzAmbiental = new THREE.AmbientLight(0x333355, 1.5);
     escena.add(luzAmbiental);
@@ -71,6 +104,17 @@ function init() {
     btnCerrarModal.addEventListener('click', cerrarRecuerdo);
     btnEntrar.addEventListener('click', iniciarExperiencia);
 
+    // Integrar controles de musica
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+
+    btnPlayPause.addEventListener('click', togglePlayPause);
+    btnNext.addEventListener('click', siguienteCancion);
+    btnPrev.addEventListener('click', anteriorCancion);
+
+    cargarCancion(indiceMusicaActual);
+
     animar();
 }
 
@@ -80,8 +124,12 @@ function iniciarExperiencia() {
     setTimeout(() => {
         pantallaBienvenida.style.visibility = 'hidden';
     }, 1000);
-    
-    bandaSonora.play().catch(err => console.log("Audio de fondo listo."));
+
+    bandaSonora.play()
+        .then(() => {
+            document.getElementById('btn-play-pause').innerText = "⏸";
+        })
+        .catch(err => console.log("Audio de fondo listo. Esperando interacción."));
 }
 
 function onMouseMove(event) {
@@ -180,7 +228,7 @@ function abrirRecuerdo(datos) {
         cuerpoModal.innerHTML += `
             <div style="text-align:center;">
                 <img src="${datos.contenido}" alt="${tituloMostrar}" class="foto-recuerdo" style="max-height:350px; border-radius:8px; cursor: zoom-in;">
-                ${datos.descripcion ? `<p style="margin-top: 15px;">${datos.descripcion}</p>` : ''}
+                ${datos.descripcion ? `<p style="margin-top: 20px; font-family: 'Poppins', sans-serif, system-ui; font-size: 14px; color: #cbd5e1; line-height: 1.6; max-width: 90%; margin-left: auto; margin-right: auto; padding: 10px 15px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">${datos.descripcion}</p>` : ''}
             </div>
         `;
         setTimeout(() => asociarClickZoom(), 50);
@@ -193,7 +241,7 @@ function abrirRecuerdo(datos) {
                     <source src="${datos.contenido}" type="video/mp4">
                     Tu navegador no soporta videos en formato MP4.
                 </video>
-                ${datos.descripcion ? `<p style="margin-top: 15px;">${datos.descripcion}</p>` : ''}
+                ${datos.descripcion ? `<p style="margin-top: 20px; font-family: 'Poppins', sans-serif, system-ui; font-size: 14px; color: #cbd5e1; line-height: 1.6; max-width: 90%; margin-left: auto; margin-right: auto; padding: 10px 15px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">${datos.descripcion}</p>` : ''}
             </div>
         `;
     }
@@ -216,8 +264,18 @@ function abrirRecuerdo(datos) {
                 indice++;
             } else {
                 clearInterval(intervaloEscritura);
+                
+                // ==========================================================================
+                // ✔️ ACTUALIZADO
+                // ==========================================================================
                 if (datos.descripcion) {
-                    cuerpoModal.innerHTML += `<p style="margin-top: 15px; font-style: italic; opacity: 0.7;">${datos.descripcion}</p>`;
+                    const contenedorDesc = document.createElement('div');
+                    contenedorDesc.innerHTML = `
+                        <p style="margin-top: 25px; font-family: 'Poppins', sans-serif, system-ui; font-size: 14px; color: #cbd5e1; line-height: 1.6; max-width: 90%; margin-left: auto; margin-right: auto; padding: 10px 15px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border-left: 3px solid #06b6d4; text-align: center;">
+                            ${datos.descripcion}
+                        </p>
+                    `;
+                    cuerpoModal.appendChild(contenedorDesc);
                 }
             }
         }, 30); 
@@ -231,7 +289,6 @@ function cerrarRecuerdo() {
     bloqueoclic = true; 
     
     if (objetivoCamara) {
-        objetivoCamara.userData.pausado = false;
         if (objetivoCamara.userData.atmosfera) {
             objetivoCamara.userData.atmosfera.material.opacity = 0.22;
         }
@@ -239,8 +296,8 @@ function cerrarRecuerdo() {
     
     objetivoCamara = null;
     modoCinematico = false;
-    regresandoAOrigen = true; 
-    
+    regresandoAOrigen = true; // La cámara inicia su viaje de retorno
+
     controles.enabled = true;
     controles.enableDamping = true;
     document.body.style.cursor = 'default';
@@ -268,27 +325,33 @@ function onWindowResize() {
 // --- 4. BUCLE DE ANIMACIÓN INTEGRAL ---
 function animar() {
     requestAnimationFrame(animar);
+    
+    // Ejecuta la física de rotaciones, traslaciones, atmósferas y anillos
     actualizarOrbitas();
     
+    // --- LÓGICA DE CÁMARA INTELIGENTE (HÍBRIDA) ---
     if (modoCinematico && objetivoCamara) {
         objetivoCamara.getWorldPosition(posMundoAux);
         const esSol = (objetivoCamara.userData.tipo === 'sol');
         
-        // --- CORRECCIÓN SEGURA: Validamos que id exista y sea un string antes de usar startsWith ---
         const idCuerpo = objetivoCamara.userData.id;
-        const esEstrellaRecuerdo = (typeof idCuerpo === 'string' && idCuerpo.startsWith('recuerdo_'));
+        const esEstreyaRecuerdo = (typeof idCuerpo === 'string' && idCuerpo.startsWith('recuerdo_'));
         
         const radioCuerpo = esSol ? 4.5 : (objetivoCamara.userData.tamano || 1.5);
 
-        // Si es una de las supernovas profundas, le damos una distancia fija y cómoda para enfocarla
-        const offsetZ = esSol ? 22 : (esEstrellaRecuerdo ? 12 : (radioCuerpo * 4) + 5);
-        const offsetY = esSol ? 8  : (esEstrellaRecuerdo ? 3  : (radioCuerpo * 1.5) + 2);
+        const offsetZ = esSol ? 22 : (esEstreyaRecuerdo ? 12 : (radioCuerpo * 4) + 5);
+        const offsetY = esSol ? 8  : (esEstreyaRecuerdo ? 3  : (radioCuerpo * 1.5) + 2);
         
         const posicionObjetivo = new THREE.Vector3(posMundoAux.x, posMundoAux.y + offsetY, posMundoAux.z + offsetZ);
 
         if (!isNaN(posicionObjetivo.x) && !isNaN(posicionObjetivo.z)) {
             camara.position.lerp(posicionObjetivo, 0.05);
             controles.target.lerp(posMundoAux, 0.05);
+        }
+
+        // --- LIBERACIÓN DE CÁMARA ---
+        if (camara.position.distanceTo(posicionObjetivo) < 0.1) {
+            modoCinematico = false;
         }
     } 
     else if (regresandoAOrigen) {
@@ -298,18 +361,64 @@ function animar() {
         camara.position.lerp(posicionGlobal, 0.05);
         controles.target.lerp(centroUniverso, 0.05);
 
-        if (controles.target.distanceTo(centroUniverso) < 0.01) {
+        // Ajustamos la tolerancia a 0.3 para cortar cálculos decimales infinitos
+        if (controles.target.distanceTo(centroUniverso) < 0.3) {
+            // ==========================================================================
+            // FIX DEL SALTO: Apagamos el damping para absorber el impacto del aterrizaje
+            // ==========================================================================
+            controles.enableDamping = false; 
+
             controles.target.copy(centroUniverso); 
-            regresandoAOrigen = false;             
+            camara.position.copy(posicionGlobal);
+            
+            regresandoAOrigen = false; // Apagamos el viaje de la cámara de inmediato
+            
+            // Forzamos un update inmediato sin damping para consolidar la matriz limpia
+            controles.update();        
+            
+            // Volvemos a encender el damping para que el movimiento libre del usuario siga siendo fluido
+            controles.enableDamping = true; 
+            
+            // ==========================================================================
+            // ¡AHORA SÍ! Despertamos los planetas de forma segura sin congelar el mouse
+            // ==========================================================================
+            if (typeof planetas3D !== 'undefined') {
+                planetas3D.forEach(p => p.userData.pausado = false);
+            }
         }
     }
     
-    controles.update();
+    // ==========================================================================
+    // NUEVO: ANIMACIÓN DINÁMICA DE LA CONSTELACIÓN (TITILEO COSMICO)
+    // ==========================================================================
+    if (typeof estrellasConstelacionObjetos !== 'undefined' && estrellasConstelacionObjetos.length > 0) {
+        const tiempo = window.performance.now() * 0.003; // Velocidad del titileo
+        
+        estrellasConstelacionObjetos.forEach((estrella) => {
+            const ud = estrella.userData;
+            // Variación armónica usando la fase matemática única de cada nodo estrella
+            const factorBucle = Math.sin(tiempo + ud.fase);
+            
+            // Si la estrella es parte del corazón, le metemos un boost extra de brillo
+            const multiplicadorGlow = ud.esCorazon ? 1.4 : 1.1;
+            estrella.material.size = ud.sizeBase * (multiplicadorGlow + factorBucle * 0.25);
+            
+            // La opacidad también respira dinámicamente para dar profundidad
+            estrella.material.opacity = 0.75 + (factorBucle * 0.25);
+        });
+    }
+    
+    // --- CLAVE DE ORBITCONTROLS ---
+    // Procesa la inercia (damping) tanto en cinemáticas como en el control libre del mouse
+    controles.update(); 
+
+    // Renderizar la escena limpia
     renderizador.render(escena, camara);
 
+    // Animación de tu cinturón de asteroides global general
     if (cinturonAsteroides) {
         const posiciones = cinturonAsteroides.geometry.attributes.position.array;
-        const datos = cinturonAsteroides.userData.datosOrbita;
+        const datos = cinturonAsteroides.userData.datosOrbitas || cinturonAsteroides.userData.datosOrbita;
 
         for (let i = 0; i < datos.length; i++) {
             datos[i].angulo += datos[i].velocidad;
@@ -319,6 +428,40 @@ function animar() {
         }
         cinturonAsteroides.geometry.attributes.position.needsUpdate = true;
     }
+}
+
+function cargarCancion(indice) {
+    bandaSonora.src = PLAYLIST[indice].archivo;
+    document.getElementById('player-titulo').innerText = PLAYLIST[indice].titulo;
+    bandaSonora.load();
+}
+
+function togglePlayPause() {
+    const btn = document.getElementById('btn-play-pause');
+    if (bandaSonora.paused) {
+        bandaSonora.play().then(() => {
+            btn.innerText = "⏸";
+        }).catch(err => console.log("Error al reproducir"));
+    } else {
+        bandaSonora.pause();
+        btn.innerText = "▶";
+    }
+}
+
+function siguienteCancion() {
+    indiceMusicaActual = (indiceMusicaActual + 1) % PLAYLIST.length;
+    cargarCancion(indiceMusicaActual);
+    bandaSonora.play().then(() => {
+        document.getElementById('btn-play-pause').innerText = "⏸";
+    }).catch(() => {});
+}
+
+function anteriorCancion() {
+    indiceMusicaActual = (indiceMusicaActual - 1 + PLAYLIST.length) % PLAYLIST.length;
+    cargarCancion(indiceMusicaActual);
+    bandaSonora.play().then(() => {
+        document.getElementById('btn-play-pause').innerText = "⏸";
+    }).catch(() => {});
 }
 
 init();

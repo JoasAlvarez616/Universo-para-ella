@@ -194,3 +194,63 @@ body, html {
     visibility: hidden !important;
     pointer-events: none !important; 
 }
+
+/* ==========================================================================
+   6. REPRODUCTOR DE MÚSICA FLOTANTE
+   ========================================================================== */
+.music-player {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: rgba(15, 12, 30, 0.65); /* Mismo tono base que tu modal */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 12px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(124, 58, 237, 0.2);
+    z-index: 5000; /* Por debajo del modal (9999) pero por encima del canvas (1) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 240px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.track-info {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.player-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.player-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.player-btn:hover {
+    color: #a855f7; /* Cambia al lila de tu botón entrar */
+    transform: scale(1.15);
+}
+
+.player-btn:active {
+    transform: scale(0.95);
+}

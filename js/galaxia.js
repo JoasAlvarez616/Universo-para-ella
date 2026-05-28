@@ -10,7 +10,7 @@ export let constelacionMesh;
 export let fondoEstrellas;
 export let estrellasRecuerdos = [];
 
-let materialLineaGlobal;
+let materialLineGlobal;
 let materialGlowGlobal;
 let estrellasConstelacionObjetos = [];
 
@@ -64,19 +64,22 @@ export function crearSistemaSolar(scene) {
     scene.add(solGlowSprite);
 
     // ==========================================
-    // 2. CREAR LOS PLANETAS Y SUS ÓRBITAS
+    // 2. CREAR LOS PLANETAS Y SUS ÓRBITAS (REFACTORIZADO)
     // ==========================================
-    const planetaTexture = textureLoader.load('assets/fotos/textura-planeta-1.jpg');
     let maxDistanciaPlaneta = 0; 
 
     CONFIG_UNIVERSO.planetas.forEach((p) => {
         const planetaGeometry = new THREE.SphereGeometry(p.tamano, 32, 32);
 
+        // --- CARGA DINÁMICA DE TEXTURAS ---
+        // Si el objeto tiene la propiedad textura, la carga. Si no, se queda en null.
+        const texturaIndividual = p.textura ? textureLoader.load(p.textura) : null;
+
         const planetaMaterial = new THREE.MeshStandardMaterial({
-            map: planetaTexture,              
-            roughness: 0.6,                   
-            metalness: 0.1,                   
-            color: p.color,                   
+            map: texturaIndividual, // Se mapea la textura específica de este planeta            
+            roughness: p.tipo === 'video' ? 0.3 : 0.7, // Los planetas de video reflejan más luz (más lisos)
+            metalness: p.tipo === 'texto' ? 0.2 : 0.0, // Un toque metálico para el planeta de texto
+            color: p.color,                  
         });
 
         const planetaMesh = new THREE.Mesh(planetaGeometry, planetaMaterial);
@@ -86,11 +89,11 @@ export function crearSistemaSolar(scene) {
             nombre: p.nombre,
             tipo: p.tipo,
             contenido: p.contenido,
-            textoFlotante: p.textoFlotante,
+            descripcion: p.descripcion || "",
             distancia: p.distancia,
             velocidad: p.velocidad,
-            angulo: Math.random() * Math.PI * 2, 
-            pausado: false 
+            angulo: Math.random() * Math.PI * 2,
+            pausado: false
         };
 
         if (p.distancia > maxDistanciaPlaneta) {
@@ -105,8 +108,8 @@ export function crearSistemaSolar(scene) {
         // --- Anillo de la Órbita ---
         const orbitaGeometry = new THREE.RingGeometry(p.distancia - 0.05, p.distancia + 0.05, 64);
         const orbitaMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            opacity: 0.08, 
+            color: p.color, // <-- TIP PRO: Cambia 0xffffff por p.color para que las líneas de órbita hagan juego con su planeta
+            opacity: 0.12, 
             transparent: true,
             side: THREE.DoubleSide,
             depthWrite: false
@@ -131,7 +134,51 @@ export function crearSistemaSolar(scene) {
         atmosferaMesh.position.z = planetaMesh.position.z;
         scene.add(atmosferaMesh);
         planetaMesh.userData.atmosfera = atmosferaMesh;
+
+        // ==========================================
+        // NUEVO: SISTEMA DE PARTICULAS (ANILLO) PARA EL PLANETA 4
+        // ==========================================
+        if (p.id === 4) {
+            const numeroAsteroides = 1500; // Cantidad de fragmentos de hielo/roca
+            const anilloGeometry = new THREE.BufferGeometry();
+            const posiciones = new Float32Array(numeroAsteroides * 3);
+
+            const radioInterno = p.tamano * 1.4; // Dónde empieza el anillo
+            const radioExterno = p.tamano * 2.3; // Dónde termina el anillo
+
+            for (let i = 0; i < numeroAsteroides; i++) {
+                // Cálculo matemático para distribuir partículas en un plano circular plano (XZ)
+                const anguloParticula = Math.random() * Math.PI * 2;
+                const distanciaParticula = radioInterno + Math.random() * (radioExterno - radioInterno);
+
+                // Inyección de coordenadas X, Y, Z
+                posiciones[i * 3] = Math.cos(anguloParticula) * distanciaParticula; // X
+                posiciones[i * 3 + 1] = (Math.random() - 0.5) * 0.12;              // Y (Un leve grosor/desviación)
+                posiciones[i * 3 + 2] = Math.sin(anguloParticula) * distanciaParticula; // Z
+            }
+
+            anilloGeometry.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+
+            // Material del polvo estelar: Pequeños puntos brillantes que reaccionan al color del planeta
+            const anilloMaterial = new THREE.PointsMaterial({
+                color: p.color,
+                size: 0.04,                 // Tamaño de cada asteroide
+                transparent: true,
+                opacity: 0.75,
+                blending: THREE.AdditiveBlending, // Efecto neón brillante
+                depthWrite: false
+            });
+
+            const anilloParticulas = new THREE.Points(anilloGeometry, anilloMaterial);
+            
+            // Añadimos el anillo directamente a la ESCENA para moverlo por coordenadas físicas,
+            // o lo guardamos en el userData para actualizar su posición en el bucle de animación.
+            scene.add(anilloParticulas);
+            planetaMesh.userData.anilloGemas = anilloParticulas;
+        }
     });
+
+
     
     // ==========================================
     // 3. CREAR POLVO CÓSMICO (NEBULOSA)
@@ -324,9 +371,9 @@ export function crearFondoEstrellas(scene) {
     scene.add(fondoEstrellas);
 }
 
-// ==========================================
-// 6. CREAR CONSTELACIÓN PLANA CON TEXTURA RADIAL DE ALTO BRILLO
-// ==========================================
+// ==========================================================================
+// 6. CREAR CONSTELACIÓN PLANA CON TEXTURA RADIAL DE ALTO BRILLO (ULTRA GLOW)
+// ==========================================================================
 export function crearConstelacionNombre(scene, nombre) {
     const contenedorConstelacion = new THREE.Group();
     estrellasConstelacionObjetos = []; // Limpiar caché de animación
@@ -348,39 +395,64 @@ export function crearConstelacionNombre(scene, nombre) {
     const espaciadoLetra = 3.5; 
     let offsetOffsetX = -(2 * espaciadoLetra) - 1; 
 
-    // Líneas guías astronómicas sutiles
-    materialLineaGlobal = new THREE.LineBasicMaterial({
-        color: 0xd946ef, 
+    // ==========================================================================
+    // MATERIALES DE LÍNEAS PARA EL NOMBRE (Tonos Morados, Violetas y Lilas)
+    // ==========================================================================
+    const materialLineGlobal = new THREE.LineBasicMaterial({
+        color: 0xffffff, // Núcleo incandescente blanco puro para todas las líneas
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.7,
         blending: THREE.AdditiveBlending
     });
 
-    materialGlowGlobal = new THREE.LineBasicMaterial({
-        color: 0xa855f7, 
+    const materialGlowIntenso = new THREE.LineBasicMaterial({
+        color: 0xa855f7, // Morado/Lila vibrante
         transparent: true,
-        opacity: 0.15,
+        opacity: 1.7,
         blending: THREE.AdditiveBlending
     });
 
-    // --- GENERAR TEXTURA CANVAS DE ESTRELLA REAL CON DESTELLO RADIAL ---
+    const materialGlowAmbiente = new THREE.LineBasicMaterial({
+        color: 0x6366f1, // Violeta/Índigo místico
+        transparent: true,
+        opacity: 0.50,
+        blending: THREE.AdditiveBlending
+    });
+
+    // ==========================================================================
+    // NUEVO: MATERIALES EXCLUSIVOS PARA EL CORAZÓN (Azul Celeste y Cian Eléctrico)
+    // ==========================================================================
+    const corazonGlowCeleste = new THREE.LineBasicMaterial({
+        color: 0x06b6d4, // Azul Celeste / Cian brillante (Cyan 500)
+        transparent: true,
+        opacity: 0.90,    // Mayor opacidad para que resalte como el centro de atención
+        blending: THREE.AdditiveBlending
+    });
+
+    const corazonGlowProfundo = new THREE.LineBasicMaterial({
+        color: 0x3b82f6, // Azul Eléctrico base (Blue 500)
+        transparent: true,
+        opacity: 0.60,
+        blending: THREE.AdditiveBlending
+    });
+
+    // --- GENERAR TEXTURA CANVAS DE ESTRELLA REAL (Fusión de Brillo Celeste y Lila) ---
     const canvasEstrella = document.createElement('canvas');
     canvasEstrella.width = 64;
     canvasEstrella.height = 64;
     const ctx = canvasEstrella.getContext('2d');
     
     const gradienteEstrella = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradienteEstrella.addColorStop(0, 'rgba(255, 255, 255, 1.0)');     // Núcleo puro
-    gradienteEstrella.addColorStop(0.15, 'rgba(245, 243, 255, 0.9)'); // Halo interno blanco-lila
-    gradienteEstrella.addColorStop(0.4, 'rgba(217, 70, 239, 0.4)');   // Brillo magenta exterior
-    gradienteEstrella.addColorStop(0.7, 'rgba(168, 85, 247, 0.08)');  // Corona difuminada
-    gradienteEstrella.addColorStop(1, 'rgba(0, 0, 0, 0)');            // Transparencia total
+    gradienteEstrella.addColorStop(0, 'rgba(255, 255, 255, 1.0)');       // Centro incandescente blanco
+    gradienteEstrella.addColorStop(0.2, 'rgba(6, 182, 212, 0.95)');      // Halo interno azul celeste puro (Cyan)
+    gradienteEstrella.addColorStop(0.5, 'rgba(116, 14, 212, 0.6)');      // Brillo intermedio lila/morado
+    gradienteEstrella.addColorStop(0.8, 'rgba(99, 102, 241, 0.15)');     // Corona exterior violeta tenue
+    gradienteEstrella.addColorStop(1, 'rgba(0, 0, 0, 0)');            
     
     ctx.fillStyle = gradienteEstrella;
     ctx.fillRect(0, 0, 64, 64);
     const texturaEstrellaReal = new THREE.CanvasTexture(canvasEstrella);
 
-    // Guardaremos los puntos del mapa para pintarlos planos (z = 0)
     const mapaNodosUnicos = new Map();
 
     const registrarNodo = (x, y, esCorazon = false) => {
@@ -390,13 +462,13 @@ export function crearConstelacionNombre(scene, nombre) {
                 posicion: new THREE.Vector3(x, y, 0),
                 fase: Math.random() * Math.PI * 2,
                 esCorazon: esCorazon,
-                size: esCorazon ? (0.9 + Math.random() * 0.4) : (0.75 + Math.random() * 0.4) // Magnitud visual variable
+                size: esCorazon ? (2.5 + Math.random() * 1.0) : (1.8 + Math.random() * 0.8)
             });
         }
         return mapaNodosUnicos.get(clave).posicion;
     };
 
-    // Procesar letras
+    // Procesar letras (NOMBRE)
     const nombreUpper = nombre.toUpperCase();
     for (let i = 0; i < nombreUpper.length; i++) {
         const letra = nombreUpper[i];
@@ -418,15 +490,17 @@ export function crearConstelacionNombre(scene, nombre) {
             puntosLineas.push(p1, p2);
         });
 
-        const geometriaSegmentos = new THREE.BufferGeometry().setFromPoints(puntosLineas);
-        const lineaPrincipal = new THREE.LineSegments(geometriaSegmentos, materialLineaGlobal);
-        const lineaGlow = new THREE.LineSegments(geometriaSegmentos, materialGlowGlobal);
+        const geometrySegmentos = new THREE.BufferGeometry().setFromPoints(puntosLineas);
+        
+        const lineaPrincipal = new THREE.LineSegments(geometrySegmentos, materialLineGlobal);
+        const lineaGlow1 = new THREE.LineSegments(geometrySegmentos, materialGlowIntenso);
+        const lineaGlow2 = new THREE.LineSegments(geometrySegmentos, materialGlowAmbiente);
 
-        contenedorConstelacion.add(lineaGlow, lineaPrincipal);
+        contenedorConstelacion.add(lineaGlow2, lineaGlow1, lineaPrincipal);
         offsetOffsetX += espaciadoLetra; 
     }
 
-    // Procesar Corazón
+    // Procesar Corazón (AZUL CELESTE)
     const puntosCorazon = [];
     const escalaCorazon = 1.8; 
 
@@ -441,13 +515,16 @@ export function crearConstelacionNombre(scene, nombre) {
         puntosCorazon.push(p1, p2);
     });
 
-    const geometriaCorazon = new THREE.BufferGeometry().setFromPoints(puntosCorazon);
-    const corazonPrincipal = new THREE.LineSegments(geometriaCorazon, materialLineaGlobal);
-    const corazonGlow = new THREE.LineSegments(geometriaCorazon, materialGlowGlobal);
+    const geometryCorazon = new THREE.BufferGeometry().setFromPoints(puntosCorazon);
+    
+    // Acoplamos las multicapas celestes exclusivas para el corazón
+    const corazonPrincipal = new THREE.LineSegments(geometryCorazon, materialLineGlobal);
+    const corazonGlow1 = new THREE.LineSegments(geometryCorazon, corazonGlowCeleste);
+    const corazonGlow2 = new THREE.LineSegments(geometryCorazon, corazonGlowProfundo);
 
-    contenedorConstelacion.add(corazonGlow, corazonPrincipal);
+    contenedorConstelacion.add(corazonGlow2, corazonGlow1, corazonPrincipal);
 
-    // --- CREAR CADA ESTRELLA COMO UN APARTADO INDEPENDIENTE CON TEXTURA DESTELANTE ---
+    // --- CREAR CADA ESTRELLA INDEPENDIENTE CON ALTO BRILLO ---
     mapaNodosUnicos.forEach((nodo) => {
         const estrellaGeom = new THREE.BufferGeometry();
         const vertices = new Float32Array([nodo.posicion.x, nodo.posicion.y, nodo.posicion.z]);
@@ -457,7 +534,7 @@ export function crearConstelacionNombre(scene, nombre) {
             size: nodo.size,
             map: texturaEstrellaReal,
             transparent: true,
-            opacity: 0.9,
+            opacity: 1.0,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             sizeAttenuation: true
@@ -465,17 +542,17 @@ export function crearConstelacionNombre(scene, nombre) {
 
         const puntoEstrella = new THREE.Points(estrellaGeom, estrellaMat);
         
-        // Guardamos metadatos para la animación de titileo en las propiedades personalizadas
         puntoEstrella.userData = {
             fase: nodo.fase,
-            sizeBase: nodo.size
+            sizeBase: nodo.size,
+            esCorazon: nodo.esCorazon
         };
 
         contenedorConstelacion.add(puntoEstrella);
         estrellasConstelacionObjetos.push(puntoEstrella);
     });
 
-    // Colocación fija perfectamente plana en el fondo celeste
+    // Colocación en el firmamento
     contenedorConstelacion.position.set(0, 21, -32);
     contenedorConstelacion.rotation.x = Math.PI / 4.5; 
 
@@ -502,70 +579,20 @@ export function actualizarOrbitas() {
             planeta.position.z = nuevaZ;
             planeta.rotation.y += 0.01;
 
+            // Optimizado con .copy() igual que el anillo para máxima eficiencia en GPU
             if (planeta.userData.atmosfera) {
-                planeta.userData.atmosfera.position.x = nuevaX;
-                planeta.userData.atmosfera.position.z = nuevaZ;
+                planeta.userData.atmosfera.position.copy(planeta.position);
+            }
+
+            // ==========================================================================
+            // NUEVO: ACTUALIZACIÓN DEL ANILLO DE PARTÍCULAS (SI EXISTE)
+            // ==========================================================================
+            if (planeta.userData.anilloGemas) {
+                planeta.userData.anilloGemas.position.copy(planeta.position);
+                planeta.userData.anilloGemas.rotation.y += 0.002; 
             }
         }
     });
-
-    // --- ANIMACIÓN ORGÁNICA DE BRILLO EN LAS TEXTURAS DE LAS ESTRELLAS ---
-    if (constelacionMesh && estrellasConstelacionObjetos.length > 0) {
-        const tiempo = Date.now() * 0.0025; 
-        
-        estrellasConstelacionObjetos.forEach((estrella) => {
-            const udf = estrella.userData.fase;
-            const tamañoOriginal = estrella.userData.sizeBase;
-
-            // Hace cambiar sutilmente el tamaño del destello simulando el parpadeo del aire espacial
-            const factorEscala = (Math.sin(tiempo + udf) * 0.25) + 0.95;
-            estrella.material.size = tamañoOriginal * factorEscala;
-            
-            // También modificamos la opacidad levemente para máximo realismo
-            estrella.material.opacity = (Math.sin(tiempo + udf) * 0.2) + 0.8;
-        });
-    }
-
-    nubesNebulosa.forEach((nube) => {
-        nube.rotation.z += nube.userData.velocidadRotacion;
-    });
-
-    if (cinturonAsteroides) {
-        const datos = cinturonAsteroides.userData.datosOrbita;
-        const posiciones = cinturonAsteroides.geometry.attributes.position.array;
-
-        for (let i = 0; i < datos.length; i++) {
-            datos[i].angulo += datos[i].velocidad; 
-
-            const idx = i * 3;
-            posiciones[idx]     = Math.cos(datos[i].angulo) * datos[i].radio;
-            posiciones[idx + 2] = Math.sin(datos[i].angulo) * datos[i].radio;
-        }
-        cinturonAsteroides.geometry.attributes.position.needsUpdate = true;
-    }
-
-    if (fondoEstrellas) {
-        fondoEstrellas.rotation.y += 0.00008; 
-
-        const atributos = fondoEstrellas.geometry.attributes;
-        const arrayColores = atributos.color.array;
-        const arrayFases = atributos.faseParpadeo.array;
-        const coloresOriginales = fondoEstrellas.userData.coloresOriginales;
-        
-        const tiempoActual = Date.now() * 0.002; 
-
-        for (let i = 0; i < arrayFases.length; i++) {
-            const factorTitileo = Math.sin(tiempoActual + arrayFases[i]);
-            const boostBrillo = (factorTitileo * 1.1) + 1.4; 
-
-            const idx = i * 3;
-            arrayColores[idx]     = coloresOriginales[idx] * boostBrillo;
-            arrayColores[idx + 1] = coloresOriginales[idx + 1] * boostBrillo;
-            arrayColores[idx + 2] = coloresOriginales[idx + 2] * boostBrillo;
-        }
-
-        atributos.color.needsUpdate = true;
-    }
 }
 
 // ==========================================

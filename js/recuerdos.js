@@ -11,40 +11,66 @@ export const CONFIG_UNIVERSO = {
 
     // 🪐 LISTA DE PLANETAS (Tus hitos principales u órbitas cercanas)
     planetas: [
-        {
-            id: 1,
-            nombre: "El Inicio",
-            tipo: "texto", // Puede ser "texto", "foto" o "video"
-            contenido: "Aquí va ese mensaje largo y profundo... Puedes escribir varios párrafos sobre el día en que se conocieron, lo que sentiste la primera vez que la viste.",
-            textoFlotante: "Léeme primero ✨",
-            color: 0x8b5cf6, 
-            tamano: 1.2,
-            distancia: 10,   
-            velocidad: 0.015 
-        },
-        {
-            id: 2,
-            nombre: "Nuestras Fotos Favoritas",
-            tipo: "foto",
-            contenido: "assets/fotos/Picsart_26-05-27_15-37-14-054.jpg", 
-            textoFlotante: "Haz clic para vernos 📸",
-            color: 0x3b82f6, 
-            tamano: 1.5,
-            distancia: 16,   
-            velocidad: 0.01  
-        },
-        {
-            id: 3,
-            nombre: "Los besitos que tanto adoras",
-            tipo: "video", // <-- NUEVO TIPO: VIDEO
-            contenido: "assets/fotos/VID_45450913_045128_765.mp4", // Guarda tus videos en formato .mp4 dentro de esta carpeta
-            textoFlotante: "Un recuerdo en movimiento",
-            color: 0x10b981, // Verde esmeralda cósmico
-            tamano: 1.4,
-            distancia: 22,
-            velocidad: 0.008
-        }
-    ],
+    {
+        id: 1,
+        nombre: "El Inicio",
+        tipo: "texto",
+        contenido: "Aquí va ese mensaje largo y profundo que se escribirá en máquina de escribir...",
+        textura: "assets/fotos/textura-planeta-2.jpg",
+        color: 0x8b5cf6, 
+        tamano: 1.2,
+        distancia: 10,   
+        velocidad: 0.015 
+    },
+    {
+        id: 2,
+        nombre: "Nuestras Fotos Favoritas",
+        tipo: "foto",
+        contenido: "assets/fotos/Picsart_26-05-27_15-37-14-054.jpg", 
+        descripcion: "Haz clic para vernos, este día fue hermoso por... 📸", // 🌟 CAMBIADO A: descripcion
+        textura: "assets/fotos/textura-planeta-1.jpg", 
+        color: 0x3b82f6, 
+        tamano: 1.5,
+        distancia: 16,   
+        velocidad: 0.01  
+    },
+    {
+        id: 3,
+        nombre: "Los besitos que tanto adoras",
+        tipo: "video",
+        contenido: "assets/fotos/VID_45450913_045128_765.mp4", 
+        descripcion: "Un recuerdo en movimiento de esos besos que tanto extraño. 💖", // 🌟 CAMBIADO A: descripcion
+        textura: "assets/fotos/textura-planeta-3.jpg", 
+        color: 0x10b981, 
+        tamano: 1.4,
+        distancia: 22,
+        velocidad: 0.008
+    },
+    {
+        id: 4,
+        nombre: "El Horizonte Compartido",
+        tipo: "foto",
+        contenido: "assets/fotos/Picsart_26-05-28_00-24-43-602.jpg", 
+        descripcion: "Un anillo de promesas en el horizonte. 🪐", // 🌟 CAMBIADO A: descripcion
+        textura: "assets/fotos/textura-planeta-3.jpg", 
+        color: 0xf59e0b, 
+        tamano: 2.2,          
+        distancia: 32,        
+        velocidad: 0.004      
+    },
+    {
+        id: 5,
+        nombre: "El Infinito de tus Ojos",
+        tipo: "foto",
+        contenido: "assets/fotos/IMG-20260423-WA0206.jpg",
+        descripcion: "En los confines del espacio reflejado en tu mirada. 🌌", // 🌟 CAMBIADO A: descripcion
+        textura: "assets/fotos/textura-planeta-4.jpg", 
+        color: 0x06b6d4,      
+        tamano: 1.0,          
+        distancia: 42,        
+        velocidad: 0.002      
+    }
+],
 
     // ✨ LISTA DE RECUERDOS (Las estrellas clicables fijas en el espacio profundo)
     // El sistema del archivo galaxia.js que armamos las distribuirá automáticamente afuera del cinturón
@@ -66,6 +92,25 @@ export const CONFIG_UNIVERSO = {
             tipo: "texto",
             contenido: "Incluso si el universo entero se expandiera hasta quedar a oscuras, buscaría la forma de encender una estrella para ti. Prometo estar siempre.",
             descripcion: "Nota mental para el futuro."
+        },
+        {
+            titulo: "Mi niña es la más hermosa",
+            tipo: "foto",
+            contenido: "assets/fotos/IMG-20250921-WA0024.jpg",
+            descripcion: "Su belleza no se puede comparar"
+        },
+        {
+            titulo: "La danzarina que amo",
+            tipo: "video",
+            contenido: "assets/fotos/VID-20251213-WA0165.mp4",
+            descripcion: "Ver cómo ama a Dios me hace amarla más"
+        },
+        {
+            titulo: "Mi niña logrará cosas grandes",
+            tipo: "foto",
+            contenido: "assets/fotos/IMG-20260519-WA0072.jpg",
+            descripcion: "Yo estoy muy orgulloso de ella"
         }
+        
     ]
 };
