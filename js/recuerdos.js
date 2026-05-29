@@ -9,106 +9,120 @@ export const CONFIG_UNIVERSO = {
         descripcion: "El centro de mi universo. Donde todo comenzó y hacia donde todo gravita."
     },
 
-    // 🪐 LISTA DE PLANETAS (Tus hitos principales u órbitas cercanas)
+    // 🪐 LISTA DE PLANETAS REORDENADA CON JERARQUÍA CÓSMICA REAL
+    // Mantiene tus ID, contenidos de fotos y descripciones intactas, pero calibra tamaños y distancias.
     planetas: [
-    {
-        id: 1,
-        nombre: "El Inicio",
-        tipo: "texto",
-        contenido: "Aquí va ese mensaje largo y profundo que se escribirá en máquina de escribir...",
-        textura: "assets/fotos/textura-planeta-1.jpg",
-        color: 0x8b5cf6, 
-        tamano: 1.2,
-        distancia: 10,   
-        velocidad: 0.015 
-    },
-    {
-        id: 2,
-        nombre: "Nuestras Fotos Favoritas",
-        tipo: "foto",
-        contenido: "assets/fotos/Picsart_26-05-27_15-37-14-054.jpg", 
-        descripcion: "Haz clic para vernos, este día fue hermoso por... 📸", // 🌟 CAMBIADO A: descripcion
-        textura: "assets/fotos/textura-planeta-2.jpg", 
-        color: 0x3b82f6, 
-        tamano: 1.5,
-        distancia: 16,   
-        velocidad: 0.01  
-    },
-    {
-        id: 3,
-        nombre: "Los besitos que tanto adoras",
-        tipo: "video",
-        contenido: "assets/fotos/VID_45450913_045128_765.mp4", 
-        descripcion: "Un recuerdo en movimiento de esos besos que tanto extraño. 💖", // 🌟 CAMBIADO A: descripcion
-        textura: "assets/fotos/8.jpg", 
-        color: 0x3b82f6, 
-        tamano: 1.4,
-        distancia: 22,
-        velocidad: 0.008
-    },
-    {
-        id: 4,
-        nombre: "El Horizonte Compartido",
-        tipo: "foto",
-        contenido: "assets/fotos/Picsart_26-05-28_00-24-43-602.jpg", 
-        descripcion: "Un anillo de promesas en el horizonte. 🪐", // 🌟 CAMBIADO A: descripcion
-        textura: "assets/fotos/textura-planeta-3.jpg", 
-        color: 0xf59e0b, 
-        tamano: 2.2,          
-        distancia: 32,        
-        velocidad: 0.004      
-    },
-    {
-        id: 5,
-        nombre: "El Infinito de tus Ojos",
-        tipo: "foto",
-        contenido: "assets/fotos/IMG-20260423-WA0206.jpg",
-        descripcion: "En los confines del espacio reflejado en tu mirada. 🌌", // 🌟 CAMBIADO A: descripcion
-        textura: "assets/fotos/textura-planeta-4.jpg", 
-        color: 0x06b6d4,      
-        tamano: 1.0,          
-        distancia: 42,        
-        velocidad: 0.002      
-    },
-    {
-            id: 6,
-            nombre: "El Eco de tu Risa",
+        {
+            id: 1, // ☄️ ESTRELA BASE: MERCURIO
+            nombre: "El Inicio",
+            tipo: "texto",
+            contenido: `Ni siquiera sé que decir o el cómo decirlo...
+    Sabes? Eres una gran parte de mi vida y mi corazón, 
+    llegaste para quedarte y amo demasiado que en esta
+    vida, con tanta oscuridad, llegarás cómo un lucero,
+    para llenar mis días con tú alegría y esa sonrisa
+    que sana el alma. 
+    Todo esto es por tí, porque te amo y quiero expresarte mi amor.
+
+    ATT: El niño que te ama`,
+            textura: "assets/fotos/textura-planeta-1.jpg",
+            color: 0x8b5cf6, 
+            tamano: 1.1,       // Pequeño y veloz, el más cercano al Sol
+            distancia: 12,   
+            velocidad: 0.022 
+        },
+        {
+            id: 2, // 🌌 ESTRELA BASE: VENUS
+            nombre: "Nuestras Fotos Favoritas",
             tipo: "foto",
-            contenido: "assets/fotos/tu-foto-6.jpg", // <--- Pon tu ruta de imagen
-            descripcion: "Un sonido que resuena en todo mi sistema solar y me alegra la vida. 🪐🎵",
+            contenido: "assets/fotos/Picsart_26-05-27_15-37-14-054.jpg", 
+            descripcion: "Días especiales, recuerdos llenos de felicidad", 
+            textura: "assets/fotos/textura-planeta-2.jpg", 
+            color: 0x3b82f6, 
+            tamano: 1.8,       // Gemelo en escala media
+            distancia: 20,   
+            velocidad: 0.016  
+        },
+        {
+            id: 3, // 🌍 ESTRELA BASE: TIERRA
+            nombre: "Te has convertido en mi hogar, dulce hogar",
+            tipo: "video",
+            contenido: "assets/fotos/VID_45450913_045128_765.mp4", 
+            descripcion: "Un recuerdo en movimiento de esos besos que tanto extraño. Mi hogar", 
+            textura: "assets/fotos/8.jpg", 
+            color: 0x2b82c9,   // Tono azul/celeste más terrestre
+            tamano: 2.0,       // Tamaño balanceado de soporte de vida
+            distancia: 28,
+            velocidad: 0.012
+        },
+        {
+            id: 4, // 🔴 ESTRELA BASE: MARTE
+            nombre: "El Horizonte Compartido",
+            tipo: "foto",
+            contenido: "assets/fotos/Picsart_26-05-28_00-24-43-602.jpg", 
+            descripcion: `Permanecerá la promesa de siempre estar y amarte aún en
+            los días dificiles y seguir construyendo nuestro universo juntos.`, 
+            textura: "assets/fotos/textura-planeta-3.jpg", 
+            color: 0xf59e0b, 
+            tamano: 1.4,       // Más pequeño que la tierra, desértico y místico
+            distancia: 38,        
+            velocidad: 0.009      
+        },
+        {
+            id: 5, // 🟤 ESTRELA BASE: JÚPITER
+            nombre: "El Infinito de tus Ojos",
+            tipo: "foto",
+            contenido: "assets/fotos/IMG-20260423-WA0206.jpg",
+            descripcion: `Tú mirada que me llena, que me da felicidad
+             esa mirada que me recuerda porque sigo avanzando, esa mirada que me hace sentir
+             que todo va a estar bien.`, 
+            textura: "assets/fotos/textura-planeta-4.jpg", 
+            color: 0x06b6d4,      
+            tamano: 4.8,       // ¡EL GIGANTE GASEOSO! El planeta más imponente y masivo
+            distancia: 56,        
+            velocidad: 0.004      
+        },
+        {
+            id: 6, // 🪐 ESTRELA BASE: SATURNO
+            nombre: "Los sueños de mi niña no tienen limite",
+            tipo: "foto",
+            contenido: "assets/fotos/PXL_20260117_093840648.jpg", 
+            descripcion: `Así cómo las montañas, crecerán los sueños de mi niña,
+                        así cómo el universo, no tendrán límite`,
             textura: "assets/fotos/textura-planeta-5.jpg", 
-            color: 0xec4899,       // Rosa vibrante/fucsia
-            tamano: 1.3,          
-            distancia: 52,        // Sigue la secuencia (el anterior era 42)
-            velocidad: 0.0015     // Más lento por estar más lejos
+            color: 0xec4899,       
+            tamano: 3.8,       // Grande, majestuoso y estilizado
+            distancia: 78,        
+            velocidad: 0.002,     
+            tieneAnillo: true  // 🌟 ¡ENCIENDE EL CINTURÓN DE METEORITOS EN EL PLANETA 6!
         },
         {
-            id: 7,
-            nombre: "Un Café Contigo",
-            tipo: "foto",
-            contenido: "assets/fotos/tu-foto-7.jpg", // <--- Pon tu ruta de imagen
-            descripcion: "El pretexto perfecto para detener el tiempo en cualquier galaxia. ☕✨",
+            id: 7, // 🔷 ESTRELA BASE: URANO
+            nombre: "Y así, siempre mi paz en medio del ruido",
+            tipo: "video",
+            contenido: "assets/fotos/Snapchat-896450706.mp4", 
+            descripcion: "Mi corazón encuentra calma al conectar con el tuyo",
             textura: "assets/fotos/textura-planeta-6.jpg", 
-            color: 0xf59e0b,       // Ámbar / Dorado cálido
-            tamano: 1.6,          
-            distancia: 64,        // Buen espacio para que no se encime
-            velocidad: 0.0010     
+            color: 0x4b70dd,       // Azul helado profundo
+            tamano: 2.6,          
+            distancia: 96,        
+            velocidad: 0.0009     
         },
         {
-            id: 8,
+            id: 8, // 🔮 ESTRELA BASE: NEPTUNO
             nombre: "El Destino Final",
             tipo: "texto",
-            contenido: "Y si el universo se expande hasta enfriarse, elegiría congelarme a tu lado. Gracias por construir este cosmos conmigo...",
-            descripcion: "Nuestro espacio eterno. 🌌♾️",
+            contenido: `No importa el tiempo, la distancia, ni los obstáculos que el universo nos ponga, 
+            siempre encontraré la forma de llegar a ti. Eres mi destino final, mi amor eterno.`,
+            descripcion: "Nuestro espacio eterno",
             textura: "assets/fotos/textura-planeta-7.jpg", 
-            color: 0xa855f7,       // Púrpura cósmico profundo
-            tamano: 1.1,          
-            distancia: 76,        // El último planeta en la frontera del mapa
-            velocidad: 0.0007     // El más majestuoso y lento de todos
+            color: 0xa855f7,       
+            tamano: 2.4,          
+            distancia: 114,       // El guardián en los bordes helados de la galaxia
+            velocidad: 0.0004     // Movimiento lento, imponente e infinito
         }
+    ],
 
-],
-    
     // ✨ LISTA DE RECUERDOS (Las estrellas clicables fijas en el espacio profundo)
     // El sistema del archivo galaxia.js que armamos las distribuirá automáticamente afuera del cinturón
     recuerdos: [
@@ -127,7 +141,10 @@ export const CONFIG_UNIVERSO = {
         {
             titulo: "Una promesa sutil",
             tipo: "texto",
-            contenido: "Incluso si el universo entero se expandiera hasta quedar a oscuras, buscaría la forma de encender una estrella para ti. Prometo estar siempre.",
+            contenido: `No olvides que te amo y estoy orgulloso de tí. 
+            Mi corazón siempre estará contigo,
+            incluso en los momentos difíciles. 
+            Eres mi niña hermosa y siempre lo serás.`,
             descripcion: "Nota mental para el futuro."
         },
         {

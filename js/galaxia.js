@@ -13,6 +13,8 @@ export let estrellasRecuerdos = [];
 let materialLineGlobal;
 let materialGlowGlobal;
 let estrellasConstelacionObjetos = [];
+let estrellasFugacesActivas = [];
+let tiempoProximaEstrella = 0;
 
 export function crearSistemaSolar(scene) {
     const textureLoader = new THREE.TextureLoader();
@@ -61,7 +63,7 @@ export function crearSistemaSolar(scene) {
     scene.add(solGlowSprite);
 
     // ==========================================
-    // 2. CREAR LOS PLANETAS Y SUS ÓRBITAS
+    // 2. CREAR LOS PLANETAS Y SUS ÓRBITAS (JERÁRQUICO)
     // ==========================================
     let maxDistanciaPlaneta = 0; 
 
@@ -69,22 +71,17 @@ export function crearSistemaSolar(scene) {
         const planetaGeometry = new THREE.SphereGeometry(p.tamano, 32, 32);
         const texturaIndividual = p.textura ? textureLoader.load(p.textura) : null;
 
-       // Usamos una autoiluminación suave para que el planeta no quede a oscuras en el fondo,
-        // pero lo suficientemente baja para que la textura se aprecie con total nitidez.
-        // ==========================================================================
         const planetaMaterial = new THREE.MeshStandardMaterial({
             map: texturaIndividual,            
             roughness: p.tipo === 'video' ? 0.2 : 0.45, 
             metalness: p.tipo === 'texto' ? 0.2 : 0.05, 
-            color: texturaIndividual ? 0xffffff : p.color, // TIP PRO: Si hay textura, el color base debe ser blanco para no tintar la foto
-
-            // Autoiluminación ambiental sutil para evitar el negro absoluto OLED
+            color: texturaIndividual ? 0xffffff : p.color, 
             emissive: texturaIndividual ? 0x222222 : p.color, 
             emissiveIntensity: texturaIndividual ? 1.0 : 0.4 
         });
 
         const planetaMesh = new THREE.Mesh(planetaGeometry, planetaMaterial);
-        
+
         planetaMesh.userData = {
             id: p.id,
             nombre: p.nombre,
@@ -101,18 +98,19 @@ export function crearSistemaSolar(scene) {
             maxDistanciaPlaneta = p.distancia;
         }
 
+        // Posicionamiento inicial en órbita
         planetaMesh.position.x = Math.cos(planetaMesh.userData.angulo) * p.distancia;
         planetaMesh.position.z = Math.sin(planetaMesh.userData.angulo) * p.distancia;
         scene.add(planetaMesh);
         planetas3D.push(planetaMesh); 
 
         // ==========================================================================
-        // ✔️ ÓRBITAS COMPENSADAS: Aumentamos la opacidad base a 0.28 para pantallas móviles
+        // ✔️ CONFIGURACIÓN DE ÓRBITAS
         // ==========================================================================
         const orbitaGeometry = new THREE.RingGeometry(p.distancia - 0.07, p.distancia + 0.07, 64);
         const orbitaMaterial = new THREE.MeshBasicMaterial({
             color: p.color, 
-            opacity: 0.28, // Órbita visible, nítida y con presencia elegante
+            opacity: 0.28, 
             transparent: true,
             side: THREE.DoubleSide,
             depthWrite: false
@@ -121,25 +119,29 @@ export function crearSistemaSolar(scene) {
         orbitaMesh.rotation.x = Math.PI / 2; 
         scene.add(orbitaMesh);
 
-        // --- ATMÓSFERA ---
+        // ==========================================================================
+        // ✔️ ATMÓSFERA INDEPENDIENTE
+        // ==========================================================================
         const atmospheresGeometry = new THREE.SphereGeometry(p.tamano * 1.15, 32, 32);
         const atmosferaMaterial = new THREE.MeshBasicMaterial({
             color: p.color,                  
             transparent: true,
-            opacity: 0.28, // Sutil aumento de la atmósfera base                  
+            opacity: 0.28,                  
             blending: THREE.AdditiveBlending, 
             side: THREE.BackSide,             
             depthWrite: false                
         });
 
         const atmosferaMesh = new THREE.Mesh(atmospheresGeometry, atmosferaMaterial);
-        atmosferaMesh.position.x = planetaMesh.position.x;
-        atmosferaMesh.position.z = planetaMesh.position.z;
+        atmosferaMesh.position.copy(planetaMesh.position); // Copia exacta de coordenadas iniciales
         scene.add(atmosferaMesh);
         planetaMesh.userData.atmosfera = atmosferaMesh;
 
-        // --- SISTEMA DE PARTÍCULAS (ANILLO) PLANETA 4 ---
-        if (p.id === 4) {
+        // ==========================================================================
+        // 🪐 SISTEMA DE PARTÍCULAS (ANILLO DE ASTEROIDES DINÁMICO)
+        // Evaluamos mediante la bandera booleana 'tieneAnillo' definida en tu CONFIG_UNIVERSO
+        // ==========================================================================
+        if (p.tieneAnillo) {
             const numeroAsteroides = 1500; 
             const anilloGeometry = new THREE.BufferGeometry();
             const posiciones = new Float32Array(numeroAsteroides * 3);
@@ -151,6 +153,7 @@ export function crearSistemaSolar(scene) {
                 const anguloParticula = Math.random() * Math.PI * 2;
                 const distanciaParticula = radioInterno + Math.random() * (radioExterno - radioInterno);
 
+                // IMPORTANTE: Al ser hijo del planeta, las posiciones se calculan desde el centro local (0,0,0)
                 posiciones[i * 3] = Math.cos(anguloParticula) * distanciaParticula; 
                 posiciones[i * 3 + 1] = (Math.random() - 0.5) * 0.12;              
                 posiciones[i * 3 + 2] = Math.sin(anguloParticula) * distanciaParticula; 
@@ -168,7 +171,10 @@ export function crearSistemaSolar(scene) {
             });
 
             const anilloParticulas = new THREE.Points(anilloGeometry, anilloMaterial);
-            scene.add(anilloParticulas);
+            
+            // 🌟 TRUCO DE INGENIERÍA: Lo agregamos directamente a la malla del planeta. 
+            // Así el anillo hereda la posición de su padre y rota armónicamente en su órbita.
+            planetaMesh.add(anilloParticulas);
             planetaMesh.userData.anilloGemas = anilloParticulas;
         }
     });
@@ -358,18 +364,25 @@ export function crearFondoEstrellas(scene) {
 }
 
 // ==========================================
-// 6. CREAR CONSTELACIÓN NOMBRE
+// 6. CREAR CONSTELACIÓN NOMBRE (PALETA CÓSMICA CELESTE/VIOLETA)
 // ==========================================
-export function crearConstelacionNombre(scene, nombre) {
+export function crearConstelacionNombre(scene) { 
     const contenedorConstelacion = new THREE.Group();
     estrellasConstelacionObjetos = []; 
-    
+
     const letrasSegmentos = {
         'I': [[0, 3, 2, 3], [1, 3, 1, 0], [0, 0, 2, 0]],
         'S': [[2, 3, 0, 3], [0, 3, 0, 1.5], [0, 1.5, 2, 1.5], [2, 1.5, 2, 0], [2, 0, 0, 0]],
         'K': [[0, 3, 0, 0], [0, 1.5, 2, 3], [0, 1.5, 2, 0]],
         'E': [[0, 3, 2, 3], [0, 3, 0, 0], [0, 0, 2, 0], [0, 1.5, 1.5, 1.5]],
-        'L': [[0, 3, 0, 0], [0, 0, 2, 0]]
+        'L': [[0, 3, 0, 0], [0, 0, 2, 0]],
+        'J': [[0, 3, 2, 3], [1, 3, 1, 0.6], [1, 0.6, 0.2, 0], [0.2, 0, 0, 0.6]],
+        'O': [[0, 3, 2, 3], [2, 3, 2, 0], [2, 0, 0, 0], [0, 0, 0, 3]],
+        'A': [[0, 0, 1, 3], [1, 3, 2, 0], [0.4, 1.2, 1.6, 1.2]],
+        'Á': [
+            [0, 0, 1, 3], [1, 3, 2, 0], [0.4, 1.2, 1.6, 1.2], 
+            [1.2, 3.4, 1.8, 4.0] 
+        ]
     };
 
     const corazonSegmentos = [
@@ -379,113 +392,117 @@ export function crearConstelacionNombre(scene, nombre) {
 
     const escala = 2.2;    
     const espaciadoLetra = 3.5; 
-    let offsetOffsetX = -(2 * espaciadoLetra) - 1; 
+    let offsetOffsetX = -18.5; 
 
-    const materialLineGlobal = new THREE.LineBasicMaterial({
-        color: 0xffffff, 
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
+    // ==========================================================================
+    // 🎨 NUEVA PALETA DE COLORES: AZUL CELESTE, AGUAMARINA Y NEÓN
+    // ==========================================================================
+    
+    // Línea base estructural de las letras (Blanco/Celeste muy tenue)
+    const materialLineGlobal = new THREE.LineBasicMaterial({ 
+        color: 0xe0f7fa, 
+        transparent: true, 
+        opacity: 0.8, 
+        blending: THREE.AdditiveBlending 
     });
 
-    const materialGlowIntenso = new THREE.LineBasicMaterial({
-        color: 0xa855f7, 
-        transparent: true,
-        opacity: 1.8,
-        blending: THREE.AdditiveBlending
+    // Brillo intenso inmediato (Verde Aguamarina / Cyan Eléctrico)
+    const materialGlowIntenso = new THREE.LineBasicMaterial({ 
+        color: 0x06b6d4, // Cyan/Aguamarina brillante
+        transparent: true, 
+        opacity: 1.8, 
+        blending: THREE.AdditiveBlending 
     });
 
-    const materialGlowAmbiente = new THREE.LineBasicMaterial({
-        color: 0x6366f1, 
-        transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending
+    // Brillo ambiental expandido (Azul Celeste Profundo)
+    const materialGlowAmbiente = new THREE.LineBasicMaterial({ 
+        color: 0x3b82f6, // Azul vibrante
+        transparent: true, 
+        opacity: 0.6, 
+        blending: THREE.AdditiveBlending 
     });
 
-    const corazonGlowCeleste = new THREE.LineBasicMaterial({
-        color: 0x06b6d4, 
-        transparent: true,
-        opacity: 0.95,    
-        blending: THREE.AdditiveBlending
+    // El corazón tendrá un sutil contraste tirando un poco más hacia el verde aguamarina puro
+    const corazonGlowCeleste = new THREE.LineBasicMaterial({ 
+        color: 0x10b981, // Verde esmeralda/aguamarina brillante para diferenciarlo
+        transparent: true, 
+        opacity: 0.95, 
+        blending: THREE.AdditiveBlending 
     });
 
-    const corazonGlowProfundo = new THREE.LineBasicMaterial({
-        color: 0x3b82f6, 
-        transparent: true,
-        opacity: 0.70,
-        blending: THREE.AdditiveBlending
+    const corazonGlowProfundo = new THREE.LineBasicMaterial({ 
+        color: 0x0284c7, // Azul cielo oscuro de fondo
+        transparent: true, 
+        opacity: 0.70, 
+        blending: THREE.AdditiveBlending 
     });
 
+    // ==========================================================================
+    // 🔮 CANVAS DE TEXTURA PARA ESTRELLAS (RECALIBRADO A TONOS VIOLETAS/LILAS)
+    // ==========================================================================
     const canvasEstrella = document.createElement('canvas');
-    canvasEstrella.width = 64;
-    canvasEstrella.height = 64;
+    canvasEstrella.width = 64; canvasEstrella.height = 64;
     const ctx = canvasEstrella.getContext('2d');
     
     const gradienteEstrella = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradienteEstrella.addColorStop(0, 'rgba(255, 255, 255, 1.0)');       
-    gradienteEstrella.addColorStop(0.2, 'rgba(6, 182, 212, 0.95)');      
-    gradienteEstrella.addColorStop(0.5, 'rgba(116, 14, 212, 0.6)');      
-    gradienteEstrella.addColorStop(0.8, 'rgba(99, 102, 241, 0.15)');     
-    gradienteEstrella.addColorStop(1, 'rgba(0, 0, 0, 0)');            
+    gradienteEstrella.addColorStop(0, 'rgba(255, 255, 255, 1.0)');         // Centro blanco destellante
+    gradienteEstrella.addColorStop(0.25, 'rgba(216, 180, 254, 0.95)');     // Lila claro brillante (Purple 300)
+    gradienteEstrella.addColorStop(0.55, 'rgba(168, 85, 247, 0.6)');       // Morado/Violeta neón (Purple 500)
+    gradienteEstrella.addColorStop(0.85, 'rgba(107, 33, 168, 0.15)');      // Violeta profundo residual (Purple 800)
+    gradienteEstrella.addColorStop(1, 'rgba(0, 0, 0, 0)');                 // Transparencia total
     
-    ctx.fillStyle = gradienteEstrella;
+    ctx.fillStyle = gradienteEstrella; 
     ctx.fillRect(0, 0, 64, 64);
     const texturaEstrellaReal = new THREE.CanvasTexture(canvasEstrella);
 
     const mapaNodosUnicos = new Map();
-
     const registrarNodo = (x, y, esCorazon = false) => {
-        const clave = `${x.toFixed(2)}_${y.toFixed(2)}`;
+        const clave = `${x.toFixed(1)}_${y.toFixed(1)}`; 
         if (!mapaNodosUnicos.has(clave)) {
             mapaNodosUnicos.set(clave, {
                 posicion: new THREE.Vector3(x, y, 0),
                 fase: Math.random() * Math.PI * 2,
                 esCorazon: esCorazon,
-                size: esCorazon ? (2.8 + Math.random() * 1.0) : (2.0 + Math.random() * 0.8)
+                size: esCorazon ? (3.0 + Math.random() * 1.2) : (2.2 + Math.random() * 0.8) // Un pelín más grandes para lucir el lila
             });
         }
         return mapaNodosUnicos.get(clave).posicion;
     };
 
-    const nombreUpper = nombre.toUpperCase();
-    for (let i = 0; i < nombreUpper.length; i++) {
-        const letra = nombreUpper[i];
-        if (letra === ' ') { offsetOffsetX += 2.5; continue; }
-
+    // ─── PASO A: DIBUJAR "ISKEL" ───
+    const primerNombre = "ISKEL";
+    for (let i = 0; i < primerNombre.length; i++) {
+        const letra = primerNombre[i];
         const segmentos = letrasSegmentos[letra];
-        if (!segmentos) { offsetOffsetX += 2.5; continue; }
+        if (!segmentos) continue;
 
         const puntosLineas = [];
-
         segmentos.forEach(([x1, y1, x2, y2]) => {
-            const posX1 = (x1 + offsetOffsetX) * escala;
-            const posY1 = y1 * escala;
-            const posX2 = (x2 + offsetOffsetX) * escala;
-            const posY2 = y2 * escala;
-
-            const p1 = registrarNodo(posX1, posY1, false);
-            const p2 = registrarNodo(posX2, posY2, false);
+            const p1 = registrarNodo((x1 + offsetOffsetX) * escala, y1 * escala, false);
+            const p2 = registrarNodo((x2 + offsetOffsetX) * escala, y2 * escala, false);
             puntosLineas.push(p1, p2);
         });
 
         const geometrySegmentos = new THREE.BufferGeometry().setFromPoints(puntosLineas);
-        
-        const lineaPrincipal = new THREE.LineSegments(geometrySegmentos, materialLineGlobal);
-        const lineaGlow1 = new THREE.LineSegments(geometrySegmentos, materialGlowIntenso);
-        const lineaGlow2 = new THREE.LineSegments(geometrySegmentos, materialGlowAmbiente);
-
-        contenedorConstelacion.add(lineaGlow2, lineaGlow1, lineaPrincipal);
-        offsetOffsetX += espaciadoLetra; 
+        contenedorConstelacion.add(
+            new THREE.LineSegments(geometrySegmentos, materialGlowAmbiente),
+            new THREE.LineSegments(geometrySegmentos, materialGlowIntenso),
+            new THREE.LineSegments(geometrySegmentos, materialLineGlobal)
+        );
+        offsetOffsetX += espaciadoLetra;
     }
+
+    // ─── PASO B: CREACIÓN DEL CORAZÓN CENTRAL ───
+    offsetOffsetX += 1.2; 
 
     const puntosCorazon = [];
     const escalaCorazon = 1.8; 
-
+    
     corazonSegmentos.forEach(([x1, y1, x2, y2]) => {
-        const posX1 = (x1 - 2) * escalaCorazon;
-        const posY1 = (y1 * escalaCorazon) - 6; 
-        const posX2 = (x2 - 2) * escalaCorazon;
-        const posY2 = (y2 * escalaCorazon) - 6;
+        const posX1 = (x1 + offsetOffsetX) * escalaCorazon;
+        const posY1 = (y1 * escalaCorazon) + 0.5; 
+        const posX2 = (x2 + offsetOffsetX) * escalaCorazon;
+        const posY2 = (y2 * escalaCorazon) + 0.5;
 
         const p1 = registrarNodo(posX1, posY1, true);
         const p2 = registrarNodo(posX2, posY2, true);
@@ -493,13 +510,38 @@ export function crearConstelacionNombre(scene, nombre) {
     });
 
     const geometryCorazon = new THREE.BufferGeometry().setFromPoints(puntosCorazon);
-    
-    const corazonPrincipal = new THREE.LineSegments(geometryCorazon, materialLineGlobal);
-    const corazonGlow1 = new THREE.LineSegments(geometryCorazon, corazonGlowCeleste);
-    const corazonGlow2 = new THREE.LineSegments(geometryCorazon, corazonGlowProfundo);
+    contenedorConstelacion.add(
+        new THREE.LineSegments(geometryCorazon, corazonGlowProfundo),
+        new THREE.LineSegments(geometryCorazon, corazonGlowCeleste),
+        new THREE.LineSegments(geometryCorazon, materialLineGlobal)
+    );
 
-    contenedorConstelacion.add(corazonGlow2, corazonGlow1, corazonPrincipal);
+    // ─── PASO C: DIBUJAR "JOÁS" ───
+    offsetOffsetX += 5.5; 
 
+    const segundoNombre = "JOÁS";
+    for (let i = 0; i < segundoNombre.length; i++) {
+        const letra = segundoNombre[i];
+        const segmentos = letrasSegmentos[letra];
+        if (!segmentos) continue;
+
+        const puntosLineas = [];
+        segmentos.forEach(([x1, y1, x2, y2]) => {
+            const p1 = registrarNodo((x1 + offsetOffsetX) * escala, y1 * escala, false);
+            const p2 = registrarNodo((x2 + offsetOffsetX) * escala, y2 * escala, false);
+            puntosLineas.push(p1, p2);
+        });
+
+        const geometrySegmentos = new THREE.BufferGeometry().setFromPoints(puntosLineas);
+        contenedorConstelacion.add(
+            new THREE.LineSegments(geometrySegmentos, materialGlowAmbiente),
+            new THREE.LineSegments(geometrySegmentos, materialGlowIntenso),
+            new THREE.LineSegments(geometrySegmentos, materialLineGlobal)
+        );
+        offsetOffsetX += espaciadoLetra;
+    }
+
+    // ─── PASO D: RENDERIZAR LAS ESTRELLAS LILAS/MORADAS ───
     mapaNodosUnicos.forEach((nodo) => {
         const estrellaGeom = new THREE.BufferGeometry();
         const vertices = new Float32Array([nodo.posicion.x, nodo.posicion.y, nodo.posicion.z]);
@@ -516,7 +558,6 @@ export function crearConstelacionNombre(scene, nombre) {
         });
 
         const puntoEstrella = new THREE.Points(estrellaGeom, estrellaMat);
-        
         puntoEstrella.userData = {
             fase: nodo.fase,
             sizeBase: nodo.size,
@@ -535,13 +576,14 @@ export function crearConstelacionNombre(scene, nombre) {
 }
 
 // ==========================================
-// 7. BUCLE DE ACTUALIZACIÓN DE MOVIMIENTOS
+// 7. BUCLE DE ACTUALIZACIÓN DE MOVIMIENTOS (CALIBRACIÓN ESTRELLAS FUGACES)
 // ==========================================
 export function actualizarOrbitas() {
     if (solMesh) {
         solMesh.rotation.y += 0.002;
     }
 
+    // 1. ANIMACIÓN DE PLANETAS, ATMÓSFERAS Y ANILLOS
     planetas3D.forEach((planeta) => {
         if (!planeta.userData.pausado) {
             planeta.userData.angulo += planeta.userData.velocidad;
@@ -558,11 +600,46 @@ export function actualizarOrbitas() {
             }
 
             if (planeta.userData.anilloGemas) {
-                planeta.userData.anilloGemas.position.copy(planeta.position);
-                planeta.userData.anilloGemas.rotation.y += 0.002; 
+                planeta.userData.anilloGemas.rotation.y += 0.005; 
             }
         }
     });
+
+    // ==========================================
+    // 🌌 2. ANIMACIÓN DE ESTRELLAS FUGACES MÚLTIPLES NATURALES
+    // ==========================================
+    const tiempoActual = performance.now();
+
+    for (let i = estrellasFugacesActivas.length - 1; i >= 0; i--) {
+        const estrella = estrellasFugacesActivas[i];
+
+        // Movimiento físico fluido basado en sus vectores individuales
+        estrella.position.x += estrella.userData.velocidadX;
+        estrella.position.y += estrella.userData.velocidadY;
+        estrella.position.z += estrella.userData.velocidadZ;
+
+        // Desvanecimiento orgánico sutil
+        estrella.userData.vida -= 0.015; 
+        estrella.material.opacity = estrella.userData.vida;
+
+        if (estrella.userData.vida <= 0) {
+            if (planetas3D.length > 0 && planetas3D[0].parent) {
+                planetas3D[0].parent.remove(estrella);
+            }
+            
+            estrella.geometry.dispose();
+            estrella.material.dispose();
+            estrellasFugacesActivas.splice(i, 1);
+        }
+    }
+
+    // Temporizador dinámico: Ráfagas espaciadas correctamente (entre 1.2 y 3 segundos)
+    if (tiempoActual > tiempoProximaEstrella) {
+        if (planetas3D.length > 0 && planetas3D[0].parent) {
+            dispararEstrellaFugaz(planetas3D[0].parent);
+        }
+        tiempoProximaEstrella = tiempoActual + (1200 + Math.random() * 1800);
+    }
 }
 
 // ==========================================
@@ -653,4 +730,55 @@ export function crearEstrellasRecuerdos(scene) {
         scene.add(puntoEstrella);
         estrellasRecuerdos.push(puntoEstrella); 
     });
+}
+
+// ==========================================
+// 9. SISTEMA DE ESTRELLAS FUGACES (DINÁMICA ORIENTADA REALISTA)
+// ==========================================
+function dispararEstrellaFugaz(scene) {
+    if (estrellasFugacesActivas.length >= 3) return;
+
+    // 🚀 A) CÁLCULO DE DIRECCIÓN TOTALMENTE ALEATORIA
+    // Definimos hacia dónde caerá de forma natural (Siempre hacia abajo, pero variando inclinación X)
+    // Izquierda a derecha, derecha a izquierda o caídas diagonales pronunciadas.
+    const velY = -(1.5 + Math.random() * 1.0);
+    const velX = (Math.random() - 0.5) * 3.5; // Flujo libre bidireccional en horizontal
+    const velZ = 0.4 + Math.random() * 0.4;
+
+    // 📐 B) ACOPLAMIENTO GEOMÉTRICO (La estela se dibuja en la dirección del movimiento)
+    // Multiplicamos el vector por un factor de escala para simular el largo real de la estela física
+    const factorLargoEstela = -4; 
+    const geometria = new THREE.BufferGeometry();
+    const posiciones = new Float32Array([
+        0, 0, 0,                                          // Cabeza brillante (Punto de origen)
+        velX * factorLargoEstela, velY * factorLargoEstela, velZ * factorLargoEstela // Cola perfectamente alineada
+    ]);
+    geometria.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+
+    const material = new THREE.LineBasicMaterial({
+        color: 0x06b6d4, // Cyan eléctrico original
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending
+    });
+
+    const nuevaEstrella = new THREE.Line(geometria, material);
+
+    // 🌌 C) DISTRIBUCIÓN HOMOGÉNEA POR TODO EL FIRMAMENTO
+    // Cubrimos un ancho masivo para que nazcan en cualquier rincón izquierdo, central o derecho
+    const inicioX = (Math.random() - 0.5) * 250; 
+    const inicioY = 30 + Math.random() * 30; // Altura variable del domo
+    const inicioZ = -120 + (Math.random() - 0.5) * 40; // Profundidades variantes para dar tridimensionalidad
+
+    nuevaEstrella.position.set(inicioX, inicioY, inicioZ);
+
+    nuevaEstrella.userData = {
+        velocidadX: velX,
+        velocidadY: velY,
+        velocidadZ: velZ,
+        vida: 1.0 
+    };
+
+    scene.add(nuevaEstrella);
+    estrellasFugacesActivas.push(nuevaEstrella);
 }
