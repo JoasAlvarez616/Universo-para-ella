@@ -48,7 +48,7 @@ export const CONFIG_UNIVERSO = {
             nombre: "Te has convertido en mi hogar, dulce hogar",
             tipo: "video",
             contenido: "assets/fotos/VID_45450913_045128_765.mp4", 
-            descripcion: "Un recuerdo en movimiento de esos besos que tanto extraño. Mi hogar", 
+            descripcion: "Hay días en los que extraño mucho darte besitosss", 
             textura: "assets/fotos/8.jpg", 
             color: 0x2b82c9,   // Tono azul/celeste más terrestre
             tamano: 2.0,       // Tamaño balanceado de soporte de vida
@@ -100,7 +100,7 @@ export const CONFIG_UNIVERSO = {
             id: 7, // 🔷 ESTRELA BASE: URANO
             nombre: "Y así, siempre mi paz en medio del ruido",
             tipo: "video",
-            contenido: "assets/fotos/Snapchat-896450706.mp4", 
+            contenido: "assets/fotos/Mi_Paz.mp4", 
             descripcion: "Mi corazón encuentra calma al conectar con el tuyo",
             textura: "assets/fotos/textura-planeta-6.jpg", 
             color: 0x4b70dd,       // Azul helado profundo
@@ -111,10 +111,10 @@ export const CONFIG_UNIVERSO = {
         {
             id: 8, // 🔮 ESTRELA BASE: NEPTUNO
             nombre: "El Destino Final",
-            tipo: "texto",
-            contenido: `No importa el tiempo, la distancia, ni los obstáculos que el universo nos ponga, 
+            tipo: "video",
+            contenido: "assets/fotos/VID-20250802-WA0035.mp4",
+            descripcion: `No importa el tiempo, la distancia, ni los obstáculos que el universo nos ponga, 
             siempre encontraré la forma de llegar a ti. Eres mi destino final, mi amor eterno.`,
-            descripcion: "Nuestro espacio eterno",
             textura: "assets/fotos/textura-planeta-7.jpg", 
             color: 0xa855f7,       
             tamano: 2.4,          

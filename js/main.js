@@ -465,25 +465,65 @@ function abrirRecuerdo(datos) {
         setTimeout(() => asociarClickZoom(), 50);
     } 
     else if (datos.tipo === 'foto') {
-        cuerpoModal.innerHTML += `
-            <div style="text-align:center;">
-                <img src="${datos.contenido}" alt="${tituloMostrar}" class="foto-recuerdo" style="max-height:350px; border-radius:8px; cursor: zoom-in;">
-                ${datos.descripcion ? `<p style="margin-top: 20px; font-family: 'Poppins', sans-serif, system-ui; font-size: 14px; color: #cbd5e1; line-height: 1.6; max-width: 90%; margin-left: auto; margin-right: auto; padding: 10px 15px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">${datos.descripcion}</p>` : ''}
-            </div>
+    cuerpoModal.innerHTML += `
+        <div style="text-align:center;">
+            <img src="${datos.contenido}" alt="${tituloMostrar}" class="foto-recuerdo" style="max-height:350px; border-radius:8px; cursor: zoom-in;">
+        </div>
+    `;
+    setTimeout(() => asociarClickZoom(), 50);
+    
+    if (datos.descripcion) {
+        const firma = document.createElement('p');
+        firma.style.cssText = `
+            margin-top: 25px;
+            font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #c4b5fd;
+            text-align: right;
+            padding: 12px 18px;
+            border-right: 2px solid #a855f7;
+            background: rgba(168, 85, 247, 0.06);
+            border-radius: 0 8px 8px 0;
+            max-width: 280px;
+            margin-left: auto;
+            animation: desvanecerEntrada 0.8s ease-out;
         `;
-        setTimeout(() => asociarClickZoom(), 50);
-    } 
-    else if (datos.tipo === 'video') {
-        cuerpoModal.innerHTML += `
-            <div style="text-align:center;">
-                <video class="video-recuerdo" controls autoplay loop playsinline style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
-                    <source src="${datos.contenido}" type="video/mp4">
-                    Tu navegador no soporta videos en formato MP4.
-                </video>
-                ${datos.descripcion ? `<p style="margin-top: 20px; font-family: 'Poppins', sans-serif, system-ui; font-size: 14px; color: #cbd5e1; line-height: 1.6; max-width: 90%; margin-left: auto; margin-right: auto; padding: 10px 15px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">${datos.descripcion}</p>` : ''}
-            </div>
-        `;
+        firma.textContent = datos.descripcion;
+        cuerpoModal.appendChild(firma);
     }
+} 
+    else if (datos.tipo === 'video') {
+    cuerpoModal.innerHTML += `
+        <div style="text-align:center;">
+            <video class="video-recuerdo" controls autoplay loop playsinline style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
+                <source src="${datos.contenido}" type="video/mp4">
+                Tu navegador no soporta videos en formato MP4.
+            </video>
+        </div>
+    `;
+    
+    if (datos.descripcion) {
+        const firma = document.createElement('p');
+        firma.style.cssText = `
+            margin-top: 25px;
+            font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #c4b5fd;
+            text-align: right;
+            padding: 12px 18px;
+            border-right: 2px solid #a855f7;
+            background: rgba(168, 85, 247, 0.06);
+            border-radius: 0 8px 8px 0;
+            max-width: 280px;
+            margin-left: auto;
+            animation: desvanecerEntrada 0.8s ease-out;
+        `;
+        firma.textContent = datos.descripcion;
+        cuerpoModal.appendChild(firma);
+    }
+}
     else if (datos.tipo === 'especial') {
         // 🌟 Foto especial + poema con máquina de escribir
         cuerpoModal.innerHTML += `
@@ -541,7 +581,7 @@ function abrirRecuerdo(datos) {
                     planetaApuntado = null;
                 }
             }
-        }, 32);
+        }, 65);
     }
     else if (datos.tipo === 'texto') {
         const pTexto = document.createElement('p');
@@ -591,7 +631,7 @@ function abrirRecuerdo(datos) {
                     planetaApuntado = null;
                 }
             }
-        }, 32);
+        }, 65);
     }
 
     // ✨ Explosión de partículas en la posición del recuerdo
