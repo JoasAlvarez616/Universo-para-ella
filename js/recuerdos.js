@@ -166,5 +166,39 @@ export const CONFIG_UNIVERSO = {
             descripcion: "Yo estoy muy orgulloso de ella"
         }
         
+    ],
+
+    // ==========================================================================
+    // 💜 EXCLUSIVO: DATOS INTERACTIVOS DE LA DIMENSIÓN 2 (EL CORAZÓN)
+    // ==========================================================================
+    dimension2: [
+        { 
+            t: Math.PI * 0.25, 
+            tipo: 'foto',   
+            titulo: 'MI SUEÑO',   
+            descripcion: `No importa cuánto pude haber imaginado, superaste mis sueños y brillas en mi corazón`,
+            contenido: 'assets/fotos/Picsart_25-07-09_14-13-24-810.jpg' 
+        },
+        { 
+            t: Math.PI * 0.75, 
+            tipo: 'video', 
+            titulo: 'MI HORIZONTE',  
+            descripcion: `Así cómo el sol se asoma en el ancho mar, tú apareciste para llenar mi horizonte de luz`,
+            contenido: 'assets/fotos/VID-20260405-WA0091.mp4' 
+        },
+        { 
+            t: Math.PI * 1.25, 
+            tipo: 'foto',   
+            titulo: 'MI PAZ',  
+            descripcion: `¿Recuerdas la paz que sentíamos? No era el lugar, eras tú dándole a mi corazón descanso`,
+            contenido: 'assets/fotos/PXL_20260118_125852048.jpg' 
+        },
+        { 
+            t: Math.PI * 1.75, 
+            tipo: 'video', 
+            titulo: 'MI LUZ', 
+            descripcion: `Es tu luz la que me ha guiado muchas veces en medio de la oscuridad, y la que me ha dado esperanza para seguir adelante`,
+            contenido: 'assets/fotos/VID-20260503-WA0056.mp4' 
+        }
     ]
 };

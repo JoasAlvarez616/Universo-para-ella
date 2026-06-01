@@ -8,9 +8,6 @@
 </head>
 <body>
 
-    <!-- ==========================================================================
-       1. PANTALLA DE BIENVENIDA (CAPA INICIAL)
-       ========================================================================== -->
     <div id="bienvenida">
         <div class="contenido-bienvenida">
             <h1>Nuestro Universo</h1>
@@ -19,26 +16,17 @@
         </div>
     </div>
 
-    <!-- ==========================================================================
-       2. ENTORNO DE RENDERIZADO 3D (THREE.JS)
-       ========================================================================== -->
+    <div id="telon-interdimensional"></div>
+
     <div id="canvas-container"></div>
 
-    <!-- ==========================================================================
-       3. VENTANA DE RECUERDOS - MODAL
-       ========================================================================== -->
     <div id="modal-recuerdo" class="oculto">
         <div class="contenido-modal">
             <span id="btn-cerrar">&times;</span>
-            <div id="cuerpo-modal">
-                <!-- El contenido dinámico (Fotos, Videos, Poemas) se inyecta aquí desde JS -->
-            </div>
+            <div id="cuerpo-modal"></div>
         </div>
     </div>
 
-    <!-- ==========================================================================
-       4. REPRODUCTOR ESTELAR FLOTANTE (PLAYLIST)
-       ========================================================================== -->
     <div id="reproductor-estelar" class="music-player">
         <div class="track-info">
             <span id="player-titulo">Sintonía Cósmica</span>
@@ -50,12 +38,29 @@
         </div>
     </div>
 
-    <!-- Elemento de audio nativo controlado dinámicamente mediante JS -->
+    <!-- Indicador de dimensión actual -->
+    <div id="indicador-dimension" class="indicador-dimension">
+        <span id="texto-dimension"></span>
+    </div>
+
+    <!-- Controles táctiles para móvil -->
+    <div class="mobile-controls">
+        <button id="btn-acercar" class="ctrl-btn" title="Acercar">🔍</button>
+        <button id="btn-alejar" class="ctrl-btn" title="Alejar">🔎</button>
+        <button id="btn-reset-vista" class="ctrl-btn" title="Vista inicial">🏠</button>
+    </div>
+
+    <!-- Hint de atajos de teclado para PC -->
+    <div class="keyboard-hint">
+        🖱️ <span>Click</span> = Abrir recuerdo &nbsp;|&nbsp;
+        <span>R</span> = Reset vista &nbsp;|&nbsp;
+        <span>F</span> = Pantalla completa &nbsp;|&nbsp;
+        <span>M</span> = Música &nbsp;|&nbsp;
+        <span>← →</span> = Canciones
+    </div>
+
     <audio id="banda-sonora" loop playsinline></audio>
 
-    <!-- ==========================================================================
-       5. MAPEO DE IMPORTACIONES Y SCRIPTS MODULARES
-       ========================================================================== -->
     <script type="importmap">
         {
             "imports": {
@@ -67,7 +72,7 @@
 
     <script type="module" src="js/recuerdos.js"></script>
     <script type="module" src="js/galaxia.js"></script>
+    <script type="module" src="js/dimension2.js"></script>
     <script type="module" src="js/main.js"></script>
-
 </body>
 </html>

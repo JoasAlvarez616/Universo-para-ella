@@ -1,4 +1,4 @@
-// js/galaxia.js - VERSIÓN TEXTURA RADIAL BRILLANTE Y TITILEO ORGÁNICO (CON ULTRA-GLOW CORREGIDO)
+// js/galaxia.js - VARIABLES GLOBALES COMPLETA
 import * as THREE from 'three';
 import { CONFIG_UNIVERSO } from './recuerdos.js';
 
@@ -9,12 +9,14 @@ export let cinturonAsteroides;
 export let constelacionMesh;
 export let fondoEstrellas;
 export let estrellasRecuerdos = [];
+export let portalInterdimensional;
 
 let materialLineGlobal;
 let materialGlowGlobal;
 let estrellasConstelacionObjetos = [];
 let estrellasFugacesActivas = [];
 let tiempoProximaEstrella = 0;
+
 
 export function crearSistemaSolar(scene) {
     const textureLoader = new THREE.TextureLoader();
@@ -360,6 +362,9 @@ export function crearFondoEstrellas(scene) {
     });
 
     fondoEstrellas = new THREE.Points(geometria, materialEstrellas);
+
+    fondoEstrellas.userData = { esManto: true };
+
     scene.add(fondoEstrellas);
 }
 
@@ -575,15 +580,67 @@ export function crearConstelacionNombre(scene) {
     scene.add(constelacionMesh);
 }
 
-// ==========================================
-// 7. BUCLE DE ACTUALIZACIÓN DE MOVIMIENTOS (CALIBRACIÓN ESTRELLAS FUGACES)
-// ==========================================
+// ==========================================================================
+// 7. BUCLE DE ACTUALIZACIÓN DE MOVIMIENTOS (CALIBRACIÓN INTEGRAL)
+// ==========================================================================
 export function actualizarOrbitas() {
+    const tiempoMili = window.performance.now();
+    const tSeg = tiempoMili * 0.001; // 🌟 RELOJ GLOBAL: El mismo motor de tiempo de la Dimensión 2
+
+    // Rotación del Sol
     if (solMesh) {
         solMesh.rotation.y += 0.002;
     }
+    
+    // ==========================================================================
+    // 🌀 MOTOR MATEMÁTICO DEL VÓRTICE (ROTACIÓN PURA - TUS VALORES FAVORITOS)
+    // ==========================================================================
+    if (portalInterdimensional) {
+        const posiciones = portalInterdimensional.geometry.attributes.position.array;
+        const datos = portalInterdimensional.userData.datosParticules;
+        
+        // Constantes desde el userData
+        const rNucleo = portalInterdimensional.userData.radioNúcleo;     
+        const rMax = portalInterdimensional.userData.largoCuchillaMax;  
+        const torsion = portalInterdimensional.userData.torsiónExtrema;  
+        const nCuchillas = portalInterdimensional.userData.numeroCuchillas; 
 
-    // 1. ANIMACIÓN DE PLANETAS, ATMÓSFERAS Y ANILLOS
+        // Barrido constante de las aspas
+        const velocidadAbanico = tSeg * 1.0; 
+
+        if (datos && posiciones) {
+            for (let i = 0; i < datos.length; i++) {
+                const pData = datos[i];
+
+                // Órbita estables sin fuerzas de succión radiales
+                const radioActual = rNucleo + pData.fraccionLargo * (rMax - rNucleo);
+                const anguloTorsion = Math.pow(pData.fraccionLargo, 2) * torsion;
+                const anguloBase = (pData.cuchilla * Math.PI * 2) / nCuchillas;
+                const anguloFinal = anguloBase + anguloTorsion + velocidadAbanico;
+
+                let dispersionModificada = pData.dispersion;
+
+                if (pData.tipo === 'nucleo') {
+                    const factorNucleo = pData.fraccionLargo < 0.1 ? 0.5 : 1.0;
+                    dispersionModificada = pData.dispersion * factorNucleo;
+                } else if (pData.tipo === 'cuchilla') {
+                    // Tus números perfectos: 1.2 centro / 1.7 exterior
+                    const factorBrazo = pData.fraccionLargo < 0.15 ? 1.2 : 1.7;
+                    dispersionModificada = pData.dispersion * factorBrazo;
+                }
+
+                const idx = i * 3;
+                posiciones[idx]     = Math.cos(anguloFinal) * radioActual + Math.cos(anguloFinal + Math.PI / 2) * dispersionModificada;
+                posiciones[idx + 1] = pData.ejeY; 
+                posiciones[idx + 2] = Math.sin(anguloFinal) * radioActual + Math.sin(anguloFinal + Math.PI / 2) * dispersionModificada;
+            }
+            portalInterdimensional.geometry.attributes.position.needsUpdate = true;
+        }
+    } // 🌟 AQUÍ SE CIERRA EL PORTAL DE FORMA CORRECTA
+
+    // ==========================================================================
+    // 🪐 1. ANIMACIÓN DE PLANETAS, ATMÓSFERAS Y ANILLOS
+    // ==========================================================================
     planetas3D.forEach((planeta) => {
         if (!planeta.userData.pausado) {
             planeta.userData.angulo += planeta.userData.velocidad;
@@ -605,20 +662,16 @@ export function actualizarOrbitas() {
         }
     });
 
-    // ==========================================
+    // ==========================================================================
     // 🌌 2. ANIMACIÓN DE ESTRELLAS FUGACES MÚLTIPLES NATURALES
-    // ==========================================
-    const tiempoActual = performance.now();
-
+    // ==========================================================================
     for (let i = estrellasFugacesActivas.length - 1; i >= 0; i--) {
         const estrella = estrellasFugacesActivas[i];
 
-        // Movimiento físico fluido basado en sus vectores individuales
         estrella.position.x += estrella.userData.velocidadX;
         estrella.position.y += estrella.userData.velocidadY;
         estrella.position.z += estrella.userData.velocidadZ;
 
-        // Desvanecimiento orgánico sutil
         estrella.userData.vida -= 0.015; 
         estrella.material.opacity = estrella.userData.vida;
 
@@ -633,14 +686,14 @@ export function actualizarOrbitas() {
         }
     }
 
-    // Temporizador dinámico: Ráfagas espaciadas correctamente (entre 1.2 y 3 segundos)
-    if (tiempoActual > tiempoProximaEstrella) {
+    // Temporizador dinámico de ráfagas
+    if (tiempoMili > tiempoProximaEstrella) {
         if (planetas3D.length > 0 && planetas3D[0].parent) {
             dispararEstrellaFugaz(planetas3D[0].parent);
         }
-        tiempoProximaEstrella = tiempoActual + (1200 + Math.random() * 1800);
+        tiempoProximaEstrella = tiempoMili + (1200 + Math.random() * 1800);
     }
-}
+} // 🌟 FINAL REAL DE LA FUNCIÓN ACTUALIZARORBITAS
 
 // ==========================================
 // 8. CREAR ESTRELLAS DE RECUERDOS
@@ -732,31 +785,28 @@ export function crearEstrellasRecuerdos(scene) {
     });
 }
 
-// ==========================================
+// ==========================================================================
 // 9. SISTEMA DE ESTRELLAS FUGACES (DINÁMICA ORIENTADA REALISTA)
-// ==========================================
+// ==========================================================================
 function dispararEstrellaFugaz(scene) {
     if (estrellasFugacesActivas.length >= 3) return;
 
     // 🚀 A) CÁLCULO DE DIRECCIÓN TOTALMENTE ALEATORIA
-    // Definimos hacia dónde caerá de forma natural (Siempre hacia abajo, pero variando inclinación X)
-    // Izquierda a derecha, derecha a izquierda o caídas diagonales pronunciadas.
     const velY = -(1.5 + Math.random() * 1.0);
-    const velX = (Math.random() - 0.5) * 3.5; // Flujo libre bidireccional en horizontal
+    const velX = (Math.random() - 0.5) * 3.5; 
     const velZ = 0.4 + Math.random() * 0.4;
 
-    // 📐 B) ACOPLAMIENTO GEOMÉTRICO (La estela se dibuja en la dirección del movimiento)
-    // Multiplicamos el vector por un factor de escala para simular el largo real de la estela física
+    // 📐 B) ACOPLAMIENTO GEOMÉTRICO
     const factorLargoEstela = -4; 
     const geometria = new THREE.BufferGeometry();
     const posiciones = new Float32Array([
-        0, 0, 0,                                          // Cabeza brillante (Punto de origen)
+        0, 0, 0,                                                                  // Cabeza brillante
         velX * factorLargoEstela, velY * factorLargoEstela, velZ * factorLargoEstela // Cola perfectamente alineada
     ]);
     geometria.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
 
     const material = new THREE.LineBasicMaterial({
-        color: 0x06b6d4, // Cyan eléctrico original
+        color: 0x06b6d4, 
         transparent: true,
         opacity: 1.0,
         blending: THREE.AdditiveBlending
@@ -765,10 +815,9 @@ function dispararEstrellaFugaz(scene) {
     const nuevaEstrella = new THREE.Line(geometria, material);
 
     // 🌌 C) DISTRIBUCIÓN HOMOGÉNEA POR TODO EL FIRMAMENTO
-    // Cubrimos un ancho masivo para que nazcan en cualquier rincón izquierdo, central o derecho
     const inicioX = (Math.random() - 0.5) * 250; 
-    const inicioY = 30 + Math.random() * 30; // Altura variable del domo
-    const inicioZ = -120 + (Math.random() - 0.5) * 40; // Profundidades variantes para dar tridimensionalidad
+    const inicioY = 30 + Math.random() * 30; 
+    const inicioZ = -120 + (Math.random() - 0.5) * 40; 
 
     nuevaEstrella.position.set(inicioX, inicioY, inicioZ);
 
@@ -781,4 +830,124 @@ function dispararEstrellaFugaz(scene) {
 
     scene.add(nuevaEstrella);
     estrellasFugacesActivas.push(nuevaEstrella);
+}
+
+// ==========================================================================
+// 10. CREAR PORTAL INTERDIMENSIONAL (VÓRTICE ANCHO CON NÚCLEO NATURAL)
+// ==========================================================================
+export function crearPortalInterdimensional(scene) {
+    const cuentaParticulas = 12000; 
+    const geometria = new THREE.BufferGeometry();
+    const posiciones = new Float32Array(cuentaParticulas * 3);
+    const datosParticulas = [];
+
+    const numeroCuchillas = 6;        
+    const radioNúcleo = 0.09; 
+    const largoCuchillaMax = 15;      
+    const torsiónExtrema = 2.0;       
+
+    for (let i = 0; i < cuentaParticulas; i++) {
+        const aleatorioTipo = Math.random();
+        
+        let tipoParticula = 'gas'; 
+        let fraccionLargo = Math.pow(Math.random(), 2.2); // Transición no lineal nativa para evitar vacíos
+        let cuchillaActual = i % numeroCuchillas;
+        let dispersionCuchilla = 0;
+        let espesorY = 0;
+
+        if (aleatorioTipo < 0.25) {
+            // 1. NÚCLEO ULTRA DENSO (Volumétrico y perfectamente integrado)
+            tipoParticula = 'nucleo';
+            fraccionLargo = Math.pow(Math.random(), 3) * 0.15; 
+            cuchillaActual = Math.floor(Math.random() * numeroCuchillas);
+            
+            // Dispersión esférica real en el centro para dar volumen orgánico
+            const anchoNucleo = 1.6 * (1.0 - fraccionLargo / 0.15);
+            dispersionCuchilla = (Math.random() - 0.5) * anchoNucleo;
+            espesorY = (Math.random() - 0.5) * anchoNucleo * 0.8;
+        } 
+        else if (aleatorioTipo < 0.90) {
+            // 2. CUCHILLAS / BRAZOS COHERENTES
+            tipoParticula = 'cuchilla';
+            // Los brazos nacen compactos en el centro y se difuminan elegantemente al alejarse
+            const baseAncho = 3.5; 
+            const anchoCuchilla = (1.0 - fraccionLargo * 0.4) * baseAncho;
+            dispersionCuchilla = (Math.random() - 0.5) * anchoCuchilla;
+            espesorY = (Math.random() - 0.5) * 0.35 * (1.0 - fraccionLargo * 0.5);
+        } 
+        else {
+            // 3. GAS DE RELLENO PERIFÉRICO
+            tipoParticula = 'gas';
+            fraccionLargo = Math.random();
+            dispersionCuchilla = (Math.random() - 0.5) * 7.0 * (1.0 - fraccionLargo * 0.3);
+            espesorY = (Math.random() - 0.5) * 2.5 * (1.0 - fraccionLargo * 0.5);
+        }
+
+        const radioFinal = radioNúcleo + fraccionLargo * (largoCuchillaMax - radioNúcleo);
+        const anguloTorsión = Math.pow(fraccionLargo, 1.8) * torsiónExtrema;
+        const anguloBase = (cuchillaActual * Math.PI * 2) / numeroCuchillas;
+        const anguloFinal = anguloBase + anguloTorsión;
+
+        const x = Math.cos(anguloFinal) * radioFinal + Math.cos(anguloFinal + Math.PI/2) * dispersionCuchilla;
+        const z = Math.sin(anguloFinal) * radioFinal + Math.sin(anguloFinal + Math.PI/2) * dispersionCuchilla;
+        const y = espesorY;
+
+        const idx = i * 3;
+        posiciones[idx] = x;
+        posiciones[idx + 1] = y;
+        posiciones[idx + 2] = z;
+
+        datosParticulas.push({
+            tipo: tipoParticula,
+            fraccionLargo: fraccionLargo, 
+            cuchilla: cuchillaActual,
+            dispersion: dispersionCuchilla, 
+            ejeY: y
+        });
+    }
+
+    geometria.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+
+    // ==========================================================================
+    // 🎨 RENDERIZADO REFORZADO (MÁS OPACIDAD Y VISIBILIDAD) - DIMENSIÓN 1
+    // ==========================================================================
+    const canvasBrillo = document.createElement('canvas');
+    canvasBrillo.width = 64; canvasBrillo.height = 64;
+    const ctx = canvasBrillo.getContext('2d');
+    const gradiente = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    
+    // Incrementamos la presencia de color sólido en el centro de la partícula
+    gradiente.addColorStop(0, 'rgba(255, 255, 255, 1.0)');     
+    gradiente.addColorStop(0.3, 'rgba(236, 215, 255, 0.95)');  // Núcleo del punto más ancho y opaco
+    gradiente.addColorStop(0.6, 'rgba(168, 85, 247, 0.4)');    // Expansión lila más notoria
+    gradiente.addColorStop(1, 'rgba(0, 0, 0, 0)');              
+    
+    ctx.fillStyle = gradiente; ctx.beginPath(); ctx.arc(32, 32, 32, 0, Math.PI * 2); ctx.fill();
+    const texturaPortal = new THREE.CanvasTexture(canvasBrillo);
+
+    const estrellaMat = new THREE.PointsMaterial({
+        color: 0xf3e8ff,            // Tono ligeramente más blanco y brillante en masa
+        size: 0.65,                 // Subimos de 0.45 a 0.65 para mayor empaque visual
+        map: texturaPortal,         
+        transparent: true,
+        opacity: 0.95,              // Subimos la opacidad al límite para que resalte
+        blending: THREE.AdditiveBlending, 
+        depthWrite: false,
+        sizeAttenuation: true 
+    });
+
+    portalInterdimensional = new THREE.Points(geometria, estrellaMat);
+    portalInterdimensional.position.set(-55, 25, -70);
+    portalInterdimensional.rotation.x = Math.PI / 2.4; 
+
+    portalInterdimensional.userData = {
+        esPortal: true,
+        datosParticulas: datosParticulas,
+        radioNúcleo: radioNúcleo,
+        largoCuchillaMax: largoCuchillaMax,
+        torsiónExtrema: torsiónExtrema,
+        numeroCuchillas: numeroCuchillas
+    };
+
+    scene.add(portalInterdimensional);
 }
