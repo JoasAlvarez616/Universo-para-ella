@@ -199,6 +199,174 @@ export const CONFIG_UNIVERSO = {
             titulo: 'MI LUZ', 
             descripcion: `Es tu luz la que me ha guiado muchas veces en medio de la oscuridad, y la que me ha dado esperanza para seguir adelante`,
             contenido: 'assets/fotos/VID-20260503-WA0056.mp4' 
-        }
-    ]
+        },
+
+      //Nodos de la nota musical
+{ 
+    t: 'nota_plica', 
+    tipo: 'especial',   
+    titulo: 'Y un día seremos felices incluso cuando todos puedan ver',   
+    descripcion: '— Morat, Cuando nadie ve',
+    contenido: `Si me preguntan por ti
+Diré que es mentira
+Que toda una vida he soñado contigo
+Yo sueño contigo
+
+Si me preguntan por ti
+Diré que no es cierto
+Que duele por dentro que no estés conmigo
+Te quiero conmigo
+
+Te miro, me miras, y el mundo no gira
+Todo parece mentira
+Tú sigue, yo sigo, es nuestro castigo
+Fingir que somos amigos
+Y cuando no haya testigos
+Mi vida entera te daré
+Cuando nadie ve`,
+    video: 'assets/fotos/Tik_Tok_-4747.mp4'
+},
+{ 
+    t: 'nota_abajo', 
+    tipo: 'especial',   
+    titulo: 'Aprenderé a quererte',   
+    descripcion: '— Morat, Aprender a quererte',
+    contenido: `Para aprender a quererte, voy a estudiar como se cumplen tus sueños
+Voy a leerte siempre muy lentamente
+Quiero entenderte
+Para enseñarte a extrañarme
+Voy a escribirte mi canción más honesta
+Darte una vida con más sumas que restas
+Si tú me dejas, no habrá preguntas, solo respuestas
+No descansaré, solo quiero tenerte a mi lado (aquí a mi lado)
+Ruego que mi voz te demuestre lo que te he esperado (lo que te he esperado)
+Antes de estar junto a ti por toda la vida
+Quiero aprender a quererte
+Quiero estudiar como se cumplen tus sueños
+Voy a leerte siempre muy lentamente
+Quiero entenderte
+Para enseñarte a extrañarme (quiero enseñarte)
+Voy a escribirte mi canción más honesta
+Darte una vida con más sumas que restas
+Si tú me dejas, no habrá preguntas, solo respuestas
+Si tú me dejas, no habrá preguntas
+Solo respuestas`,
+    video: 'assets/fotos/VID-20260419-WA0026.mp4'
+},
+{ 
+    t: 'nota_centro', 
+    tipo: 'especial',   
+    titulo: 'Cada día sigue siendo ese "Solo día"',   
+    descripcion: '— Morat, en un solo día',
+    contenido: `Tal parece que yo, me acostumbré a ti en un sólo día
+Que te ando extrañando
+Como si hace años que te conocía
+Tal parece que yo
+En un solo baile te entregué mi vida
+Tal parece que el sentimiento venció las reglas que había
+Tal parece que yo me acostumbré a ti en un solo día
+Que te ando extrañando
+Como si hace años que te conocía
+Tal parece que yo
+En un solo baile te entregué mi vida
+Tal parece que el sentimiento venció las reglas que había
+Venció las reglas que había`,
+    video: 'assets/fotos/lv_7286356558835895557_20231023120214.mp4'  // o video si prefieres
+},
+        // 📖 Nodos del Libro (10 + 1 lomo)
+    { 
+        t: 'libro_1', 
+        tipo: 'especial',   
+        titulo: 'Gracias por aparecer en mi vida',   
+        descripcion: '― Alice Kellen, El chico que dibujaba constelaciones',
+        contenido: `"Hasta que tú apareciste, porque entonces todo cambió.
+        Llegaste cuando ya casi había decidido marcharme"`,
+        video: 'assets/fotos/VID-20230901-WA0026.mp4'
+    },
+    { 
+        t: 'libro_2', 
+        tipo: 'especial',   
+        titulo: 'Una constelación de nuestras vidas',   
+        descripcion: '― Alice Kellen, El chico que dibujaba constelaciones',
+        contenido: `"Un punto por cada instante importante. Una estrella, una marca que solo tú y yo sepamos descifrar. Será el álbum de nuestras vidas"`,
+        video: 'assets/fotos/Snapchat-367420273.mp4'
+    },
+    { 
+        t: 'libro_3', 
+        tipo: 'especial',   
+        titulo: 'Te espera algo más grande que tus sueños',   
+        descripcion: '― Alice Kellen, Nosotros en la Luna',
+        contenido: `“No tienes un futuro negro, Ginger. Tienes un futuro inmenso. Una página en blanco delante de ti. Y puedes escribir lo que tú quieras"`,
+        foto: 'assets/fotos/IMG-20260124-WA0000.jpg'
+    },
+    { 
+        t: 'libro_4', 
+        tipo: 'especial',   
+        titulo: 'Nosotros, nuestro universo',   
+        descripcion: '― Alice Kellen, El chico que dibujaba constelaciones',
+        contenido: `"Susurraste que, si alguna vez volvía a dudar, mirase las constelaciones que habías dibujado en nuestra pared, todas las estrellas que nos habían marcado, las que habíamos cerrado y dejado atrás, las que aún estaban abiertas y casi presentes. Nosotros"`,
+        video: 'assets/fotos/2025-06-24-144524816.mp4'
+    },
+    { 
+        t: 'libro_5', 
+        tipo: 'especial',   
+        titulo: 'Adoro escucharte',   
+        descripcion: '― Alice Kellen, Nosotros en la Luna',
+        contenido: `"Nunca me había cruzado con alguien que tuviese tanto que decir y que a mí me apeteciese tanto escuchar"`,
+        foto: 'assets/fotos/IMG-20230819-WA0029~2.jpg'
+    },
+    { 
+        t: 'libro_6', 
+        tipo: 'especial',   
+        titulo: 'Estar enamorado es algo más',   
+        descripcion: '― Alice Kellen, Nosotros en la Luna',
+        contenido: `“Yo no soy ninguna experta, pero creo que estar enamorado es algo más.
+        Es sentir un cosquilleo en la tripa cuando la ves. Y no poder dejar de mirarla.
+        Echarla de menos incluso teniéndola delante. Desear tocarla a todas horas, hablar de cualquier cosa, de todo y de nada.
+        Sentir que pierdes la noción del tiempo cuando estás a su lado. Fijarte en los detalles.
+        Querer saber cualquier cosa sobre ella, aunque sea una tontería. ¿Sabes Rhys? En realidad, creo que es como estar permanentemente colgado de la luna.
+        Boca abajo. Con una sonrisa inmensa. Sin Miedo.”`,
+        video: 'assets/fotos/VID-20260401-WA0012.mp4'
+    },
+    { 
+        t: 'libro_7', 
+        tipo: 'especial',   
+        titulo: 'Eres tú mi luna',   
+        descripcion: '― Alice Kellen, Nosotros en la Luna',
+        contenido: `—[La luna] Está llena de cráteres, pero son bonitos, ¿no? mucho más que si fuese una superficie completamente lisa. Tú eres como la luna. Todos somos imperfectos. Todos tenemos agujeros. ¿Y qué? Podemos vivir con esos. Debemos vivir con eso.”`,
+        foto: 'assets/fotos/IMG-20260503-WA0086.jpg'
+    },
+    { 
+        t: 'libro_8', 
+        tipo: 'especial',   
+        titulo: 'No hay normas para nuestro amor',   
+        descripcion: '― Alice Kellen, El chico que dibujaba constelaciones',
+        contenido: `Porque hay amores que no se pueden comprar, de esos en los que no importa la sangre ni lo que las normas sociales te dicten. Y tú y yo, Gabriel, no estábamos hechos para seguir ninguna norma`,
+        video: 'assets/fotos/lv_7268899749711973637_20230929114453.mp4'
+    },
+    { 
+        t: 'libro_9', 
+        tipo: 'especial',   
+        titulo: 'Intrusa, te quedaste con todo el amor',   
+        descripcion: '― Alice Kellen, Nosotros en la Luna',
+        contenido: `“Y no porque hubiese visto los mensajes, sino por lo mucho que me jodía que alguien se tomase la libertad de entrar sin antes molestarse en llamar a la puerta de mi vida. Solo se los permitía Ginger. A ella le dejaba colarse por ventanas abiertas, por rendijas ocultas, por el hueco de la chimenea...”`,
+        video: 'assets/fotos/VID-20250802-WA0031.mp4'
+    },
+    { 
+        t: 'libro_10', 
+        tipo: 'especial',   
+        titulo: 'Encontrarte fue mi mayor golpe de suerte',   
+        descripcion: '— Marianela dos Santos, En todos mis universos',
+        contenido: `"Había cierto consuelo en la creencia de que nuestras vidas se entrelazaban en todos los universos posibles. Como si cada decisión nos hubiera conducido a estar juntos, una y otra vez"`,
+        video: 'assets/fotos/Tik_Tok_-4945.mp4'
+    },
+    { 
+        t: 'libro_11', 
+        tipo: 'especial',   
+        titulo: 'En todos mis univeros te amaría',   
+        descripcion: '— Marianela dos Santos, En todos mis universos',
+        contenido: `"Si existen otros universos, te buscaré en cada uno y te amaré en todos ellos"`,
+        foto: 'assets/fotos/Snapchat-843405868.jpg'
+    }
+  ]
 };

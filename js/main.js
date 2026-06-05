@@ -28,15 +28,19 @@ let dimensionActual = 1;
 
 // 🎵 Playlists separadas por dimensión
 const PLAYLIST_D1 = [
-    { titulo: "The Book of life - Te amo y mas", archivo: "assets/musica/The Book of life - Te amo y mas.mp3" },
-    { titulo: "Andres Cepeda - Por el resto de mi vida", archivo: "assets/musica/Andres Cepeda - Por el resto de mi vida.mp3" },
-    { titulo: "Ed Sheeran - Photograph", archivo: "assets/musica/Ed Sheeran - Photograph.mp3" }
+    { titulo: "Eclipse Solar - Morat", archivo: "assets/musica/Morat - Eclipse Solar.mp3" },
+    { titulo: "Te amo y mas - The Book of life", archivo: "assets/musica/The Book of life - Te amo y mas.mp3" },
+    { titulo: "Por el resto de mi vida - Andres Cepeda", archivo: "assets/musica/Andres Cepeda - Por el resto de mi vida.mp3" },
+    { titulo: "Photograph - Ed Sheeran", archivo: "assets/musica/Ed Sheeran - Photograph.mp3" },
+    { titulo: "Eres Tú - Morat", archivo: "assets/musica/Morat - Eres Tú.mp3" }
 ];
 
 const PLAYLIST_D2 = [
-    { titulo: "Andrés Obregón - Sin maquillar", archivo: "assets/musica/Andrés Obregón - Sin maquillar.mp3" },
-    { titulo: "Juan Luis Guerra - Mi bendición", archivo: "assets/musica/Juan Luis Guerra - Mi bendición.mp3" },
-    { titulo: "Siddhartha - Paraíso Lunar", archivo: "assets/musica/Siddhartha - Paraíso Lunar.mp3" }
+    { titulo: "En un solo día - Morat", archivo: "assets/musica/Morat - En un solo día.mp3" },
+    { titulo: "Sin maquillar - Andrés Obregón", archivo: "assets/musica/Andrés Obregón - Sin maquillar.mp3" },
+    { titulo: "Aprender a quererte - Morat", archivo: "assets/musica/Morat - Aprenderte a quererte.mp3" },
+    { titulo: "Mi bendición - Juan Luis Guerra", archivo: "assets/musica/Juan Luis Guerra - Mi bendición.mp3" },
+    { titulo: "Cuando nadie ve - Morat", archivo: "assets/musica/Morat - Cuando Nadie Ve.mp3" }
 ];
 
 let playlistActual = PLAYLIST_D1;
@@ -163,12 +167,18 @@ function init() {
     camara = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camara.position.set(0, 20, 35); 
 
-    renderizador = new THREE.WebGLRenderer({ antialias: true });
-    renderizador.setSize(window.innerWidth, window.innerHeight);
-    renderizador.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    contenedor.appendChild(renderizador.domElement);
-    renderizador.shadowMap.enabled = true;
-    renderizador.shadowMap.type = THREE.PCFSoftShadowMap;
+renderizador = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: false,
+    powerPreference: "high-performance"
+});
+renderizador.sortObjects = true;
+renderizador.setSize(window.innerWidth, window.innerHeight);
+renderizador.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+contenedor.appendChild(renderizador.domElement);
+renderizador.shadowMap.enabled = true;
+renderizador.shadowMap.type = THREE.PCFSoftShadowMap;
+renderizador.setClearColor(0x050508, 1);
 
     controles = new OrbitControls(camara, renderizador.domElement);
     controles.enableDamping = true; 
@@ -496,7 +506,7 @@ function abrirRecuerdo(datos) {
     else if (datos.tipo === 'video') {
     cuerpoModal.innerHTML += `
         <div style="text-align:center;">
-            <video class="video-recuerdo" controls autoplay loop playsinline style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
+            <video class="video-recuerdo" controls autoplay loop playsinline muted style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
                 <source src="${datos.contenido}" type="video/mp4">
                 Tu navegador no soporta videos en formato MP4.
             </video>
@@ -525,64 +535,74 @@ function abrirRecuerdo(datos) {
     }
 }
     else if (datos.tipo === 'especial') {
-        // 🌟 Foto especial + poema con máquina de escribir
+    // 🌟 Contenido especial: puede ser foto O video + poema
+    if (datos.foto) {
         cuerpoModal.innerHTML += `
             <div style="text-align:center;">
             <img src="${datos.foto}" alt="${tituloMostrar}" class="foto-recuerdo" style="max-height:220px; max-width:90%; border-radius:12px; margin-bottom:20px; box-shadow: 0 8px 24px rgba(168,85,247,0.3); cursor: zoom-in;">
             </div>
         `;
-        
         setTimeout(() => asociarClickZoom(), 50);
-        
-        const pTexto = document.createElement('p');
-        pTexto.className = 'texto-animado';
-        cuerpoModal.appendChild(pTexto);
-        
-        const textoCompleto = datos.contenido;
-        let indice = 0;
-        
-        intervaloEscritura = setInterval(() => {
-            if (indice < textoCompleto.length) {
-                if (textoCompleto.charAt(indice) === '\n') {
-                    pTexto.innerHTML += '<br>';
-                } else {
-                    pTexto.innerHTML += textoCompleto.charAt(indice);
-                }
-                indice++;
-            } else {
-                if (datos.descripcion) {
-                    const firma = document.createElement('p');
-                    firma.style.cssText = `
-                        margin-top: 25px;
-                        font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
-                        font-style: italic;
-                        font-size: 0.95rem;
-                        color: #c4b5fd;
-                        text-align: right;
-                        padding: 12px 18px;
-                        border-right: 2px solid #a855f7;
-                        background: rgba(168, 85, 247, 0.06);
-                        border-radius: 0 8px 8px 0;
-                        max-width: 280px;
-                        margin-left: auto;
-                        animation: desvanecerEntrada 0.8s ease-out;
-                    `;
-                    firma.textContent = datos.descripcion;
-                    cuerpoModal.appendChild(firma);
-                }
-                
-                clearInterval(intervaloEscritura);
-                document.body.style.cursor = 'default';
-                if (planetaApuntado) {
-                    planetaApuntado.userData.pausado = false;
-                    if (planetaApuntado.userData.atmosfera) {
-                        planetaApuntado.userData.atmosfera.material.opacity = 0.25;
-                    }
-                    planetaApuntado = null;
-                }
-            }
-        }, 65);
+    } else if (datos.video) {
+        cuerpoModal.innerHTML += `
+            <div style="text-align:center;">
+            <video class="video-recuerdo" controls autoplay loop playsinline muted style="max-width:100%; max-height:350px; border-radius:8px; outline:none; box-shadow: 0px 0px 15px rgba(168, 85, 247, 0.3);">
+                <source src="${datos.video}" type="video/mp4">
+                Tu navegador no soporta videos en formato MP4.
+            </video>
+            </div>
+        `;
     }
+    
+    const pTexto = document.createElement('p');
+    pTexto.className = 'texto-animado';
+    cuerpoModal.appendChild(pTexto);
+    
+    const textoCompleto = datos.contenido;
+    let indice = 0;
+    
+    intervaloEscritura = setInterval(() => {
+        if (indice < textoCompleto.length) {
+            if (textoCompleto.charAt(indice) === '\n') {
+                pTexto.innerHTML += '<br>';
+            } else {
+                pTexto.innerHTML += textoCompleto.charAt(indice);
+            }
+            indice++;
+        } else {
+            if (datos.descripcion) {
+                const firma = document.createElement('p');
+                firma.style.cssText = `
+                    margin-top: 25px;
+                    font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
+                    font-style: italic;
+                    font-size: 0.95rem;
+                    color: #c4b5fd;
+                    text-align: right;
+                    padding: 12px 18px;
+                    border-right: 2px solid #a855f7;
+                    background: rgba(168, 85, 247, 0.06);
+                    border-radius: 0 8px 8px 0;
+                    max-width: 280px;
+                    margin-left: auto;
+                    animation: desvanecerEntrada 0.8s ease-out;
+                `;
+                firma.textContent = datos.descripcion;
+                cuerpoModal.appendChild(firma);
+            }
+            
+            clearInterval(intervaloEscritura);
+            document.body.style.cursor = 'default';
+            if (planetaApuntado) {
+                planetaApuntado.userData.pausado = false;
+                if (planetaApuntado.userData.atmosfera) {
+                    planetaApuntado.userData.atmosfera.material.opacity = 0.25;
+                }
+                planetaApuntado = null;
+            }
+        }
+    }, 65);
+}
     else if (datos.tipo === 'texto') {
         const pTexto = document.createElement('p');
         pTexto.className = 'texto-animado';
@@ -696,33 +716,38 @@ function animar() {
     // 🎥 MODO CINEMÁTICO: ENFOQUE DE ELEMENTOS
     // ==========================================
     if (modoCinematico && objetivoCamara) {
+    if (objetivoCamara.userData && objetivoCamara.userData.worldPosition) {
+        posMundoAux.copy(objetivoCamara.userData.worldPosition);
+    } else {
         objetivoCamara.getWorldPosition(posMundoAux);
-        
-        const esSol = objetivoCamara.userData && objetivoCamara.userData.tipo === 'sol';
-        const idCuerpo = objetivoCamara ? objetivoCamara.userData.id : null; 
-        const esEstreyaRecuerdo = (typeof idCuerpo === 'string' && idCuerpo.startsWith('recuerdo_'));
-        
-        const radioCuerpo = esSol ? 4.5 : ((objetivoCamara.userData && objetivoCamara.userData.tamano) || 1.5);
+    }
+    
+    const esSol = objetivoCamara.userData && objetivoCamara.userData.tipo === 'sol';
+    const idCuerpo = objetivoCamara ? objetivoCamara.userData.id : null; 
+    const esEstreyaRecuerdo = (typeof idCuerpo === 'string' && idCuerpo.startsWith('recuerdo_'));
+    
+    const radioCuerpo = esSol ? 4.5 : ((objetivoCamara.userData && objetivoCamara.userData.tamano) || 1.5);
 
-        const offsetZ = esSol ? 22 : (esEstreyaRecuerdo ? 12 : (radioCuerpo * 4) + 5);
-        const offsetY = esSol ? 8  : (esEstreyaRecuerdo ? 3  : (radioCuerpo * 1.5) + 2);
-        
-        const posicionObjetivo = new THREE.Vector3(posMundoAux.x, posMundoAux.y + offsetY, posMundoAux.z + offsetZ);
+    const offsetZ = esSol ? 22 : (esEstreyaRecuerdo ? 12 : (radioCuerpo * 4) + 5);
+    const offsetY = esSol ? 8  : (esEstreyaRecuerdo ? 3  : (radioCuerpo * 1.5) + 2);
+    
+    const posicionObjetivo = new THREE.Vector3(posMundoAux.x, posMundoAux.y + offsetY, posMundoAux.z + offsetZ);
 
-        if (!isNaN(posicionObjetivo.x) && !isNaN(posicionObjetivo.z)) {
-            camara.position.lerp(posicionObjetivo, 0.08);
-            controles.target.lerp(posMundoAux, 0.08);
-        }
+    if (!isNaN(posicionObjetivo.x) && !isNaN(posicionObjetivo.z)) {
+        camara.position.lerp(posicionObjetivo, 0.08);
+        controles.target.lerp(posMundoAux, 0.08);
+    }
 
-        if (camara.position.distanceTo(posicionObjetivo) < 0.1) {
-            modoCinematico = false;
-        }
-    } 
+    if (camara.position.distanceTo(posicionObjetivo) < 0.1) {
+        modoCinematico = false;
+    }
+}
+
     // ==========================================
     // 🔙 REGRESO MANUAL AL CENTRO
     // ==========================================
     else if (regresandoAOrigen) {
-        const posicionGlobal = dimensionActual === 1 ? new THREE.Vector3(0, 20, 35) : new THREE.Vector3(0, 15, 40);
+        const posicionGlobal = dimensionActual === 1 ? new THREE.Vector3(0, 20, 35) : new THREE.Vector3(0, 12, 55);
         const centroUniverso = new THREE.Vector3(0, 0, 0);
         
         camara.position.lerp(posicionGlobal, 0.05);
@@ -780,7 +805,7 @@ function animar() {
             
             camara.fov = 60;
             camara.updateProjectionMatrix();
-            camara.position.set(0, 15, 40); 
+            camara.position.set(0, 12, 72); 
             controles.target.set(0, 0, 0);
             
             dimensionActual = 2; 
